@@ -464,11 +464,11 @@ body {
   grid-template-rows: auto auto auto auto auto auto;
   grid-template-areas:
     ".     .  .     .  dram   .  .      .  .    "
-    ".     .  .     .  ddr    .  .      .  wfifo"
+    "pcie  .  host  .  ddr    .  .      .  wfifo"
     "pcie  .  host  .  ubuf   .  setup  .  mmu  "
     "pcie  .  host  .  .      .  .      .  acc  "
-    "pcie  .  host  .  ctrl   .  .      .  act  "
-    ".     .  .     .  instr  .  .      .  norm ";
+    ".     .  ctrl  .  .      .  .      .  act  "
+    ".     .  instr .  .      .  .      .  norm ";
   align-items: center;
   justify-items: center;
   justify-content: center;
@@ -483,7 +483,8 @@ body {
   min-height: unset;
 }
 
-/* Instr block — smaller like original */
+/* Ctrl & Instr blocks — smaller like original */
+#arch-ctrl,
 #arch-instr {
   padding: 0.3rem 0.5rem;
   font-size: 0.6rem;

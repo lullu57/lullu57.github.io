@@ -412,8 +412,8 @@
     ln(dram.cx, dram.b + g, ddr.cx, ddr.t - g, C_IO, "mIO");
     lbl(dram.r + 6, (dram.b + ddr.t) / 2 + 3, "30 GiB/s", "start");
 
-    // 2. DDR3-2133 → Weight FIFO  (30 GiB/s, GREEN, one-way RIGHT)
-    ln(ddr.r + g, ddr.cy, wfifo.l - g, wfifo.cy, C_IO, "mIO");
+    // 2. DDR3-2133 → Weight FIFO  (30 GiB/s, BLUE, one-way RIGHT)
+    ln(ddr.r + g, ddr.cy, wfifo.l - g, wfifo.cy, C_BUF, "mBuf");
     lbl((ddr.r + wfifo.l) / 2, ddr.cy - 8, "30 GiB/s");
 
     // 3. PCIe ↔ external  (14 GiB/s, GREEN, bidirectional LEFT)
@@ -454,17 +454,17 @@
     ln(ubuf.r + g, ubuf.cy, setup.l - g, setup.cy, C_BUF, "mBuf");
     lbl((ubuf.r + setup.l) / 2, ubuf.cy - 8, "167 GiB/s");
 
-    // 8. Systolic Data Setup → MMU  (AMBER, one-way RIGHT)
-    ln(setup.r + g, setup.cy, mmu.l - g, mmu.cy, C_COMP, "mComp");
+    // 8. Systolic Data Setup → MMU  (BLUE, one-way RIGHT)
+    ln(setup.r + g, setup.cy, mmu.l - g, mmu.cy, C_BUF, "mBuf");
 
-    // 9. Weight FIFO → MMU  (30 GiB/s, AMBER, one-way DOWN)
-    ln(wfifo.cx, wfifo.b + g, mmu.cx, mmu.t - g, C_COMP, "mComp");
+    // 9. Weight FIFO → MMU  (30 GiB/s, BLUE, one-way DOWN)
+    ln(wfifo.cx, wfifo.b + g, mmu.cx, mmu.t - g, C_BUF, "mBuf");
     lbl(wfifo.r + 6, (wfifo.b + mmu.t) / 2 + 3, "30 GiB/s", "start");
 
-    // 10–12. MMU → Acc → Act → Norm  (AMBER, one-way DOWN chain)
-    ln(mmu.cx, mmu.b + g, acc.cx, acc.t - g, C_COMP, "mComp");
-    ln(acc.cx, acc.b + g, act.cx, act.t - g, C_COMP, "mComp");
-    ln(act.cx, act.b + g, norm.cx, norm.t - g, C_COMP, "mComp");
+    // 10–12. MMU → Acc → Act → Norm  (BLUE, one-way DOWN chain)
+    ln(mmu.cx, mmu.b + g, acc.cx, acc.t - g, C_BUF, "mBuf");
+    ln(acc.cx, acc.b + g, act.cx, act.t - g, C_BUF, "mBuf");
+    ln(act.cx, act.b + g, norm.cx, norm.t - g, C_BUF, "mBuf");
 
     // 13. Normalize/Pool → Unified Buffer  (167 GiB/s, BLUE, L-shaped return)
     var retX = ubuf.cx;
@@ -477,6 +477,8 @@
 
     // =============================================================
     //  CONTROL-FLOW ARROWS  (thin RED, routed around data paths)
+    //  Ctrl & Instr are now in col 3 (host column), below Host.
+    //  The Norm→UBuf return path is in col 5 — no overlap.
     // =============================================================
     var csw = 1.3;
 
@@ -495,45 +497,27 @@
     var c3y = (acc.b + act.t) / 2;
     var C3 = ctrlBox(c3x, c3y);
 
-    // C4: lower-left — between ctrl column & host column (return to host)
-    var c4x = (host.r + ctrl.l) / 2;
-    var c4y = (host.b + ctrl.cy) / 2;
-    var C4 = ctrlBox(c4x, c4y);
-
-    // -- Instr → Ctrl (upward, Instr is directly below Ctrl) --
+    // -- Instr → Ctrl  (upward, both in col 3) --
     if (instr && ctrl) {
       ln(instr.cx, instr.t - g, ctrl.cx, ctrl.b + g, C_CTRL, "mCtrl", csw);
     }
 
-    // -- Ctrl → C1  (route through empty row-4 gap, avoiding data arrows) --
-    if (ctrl) {
-      var busY1 = ubuf.b + (ctrl.t - ubuf.b) * 0.3;
-      pline([
-        [ctrl.cx - 4, ctrl.t - g],
-        [ctrl.cx - 4, busY1],
-        [C1.cx, busY1],
-        [C1.cx, C1.b + g]
-      ], C_CTRL, "mCtrl", csw);
+    // -- Ctrl → Host  (upward, Ctrl is directly below Host in same column) --
+    if (ctrl && host) {
+      ln(ctrl.cx, ctrl.t - g, host.cx, host.b + g, C_CTRL, "mCtrl", csw);
     }
 
-    // -- Ctrl → C2  (separate path, slightly different Y to avoid overlap) --
+    // -- Ctrl → C1  (right then up through the host/ubuf gap) --
     if (ctrl) {
-      var busY2 = ubuf.b + (ctrl.t - ubuf.b) * 0.5;
       pline([
-        [ctrl.cx + 4, ctrl.t - g],
-        [ctrl.cx + 4, busY2],
-        [C2.cx, busY2],
-        [C2.cx, C2.b + g]
+        [ctrl.r + g, ctrl.cy],
+        [C1.cx, ctrl.cy],
+        [C1.cx, C1.b + g]
       ], C_CTRL, "mCtrl", csw);
     }
 
     // -- C1 → C2  (horizontal control bus above main row) --
     ln(C1.r + g, C1.cy, C2.l - g, C2.cy, C_CTRL, "mCtrl", csw);
-
-    // -- C1 → Host  (downward from C1 to host top) --
-    if (host) {
-      ln(C1.cx, C1.b + g, host.r - 8, host.t - g, C_CTRL, "mCtrl", csw);
-    }
 
     // -- C2 → C3  (right then down to reach compute pipeline) --
     pline([
@@ -544,26 +528,13 @@
 
     // -- C3 → back toward Ctrl  (left-and-down, completing the ring) --
     if (ctrl) {
+      var retCtrlY = (acc.b + act.t) / 2;
       pline([
         [C3.l - g, C3.cy],
-        [ctrl.r + 12, C3.cy],
-        [ctrl.r + 12, ctrl.cy],
+        [ctrl.r + 10, retCtrlY],
+        [ctrl.r + 10, ctrl.cy],
         [ctrl.r + g, ctrl.cy]
       ], C_CTRL, "mCtrl", csw);
-    }
-
-    // -- Ctrl → C4  (left from ctrl to C4, connecting back to host) --
-    if (ctrl) {
-      pline([
-        [ctrl.l - g, ctrl.cy + 5],
-        [C4.cx, ctrl.cy + 5],
-        [C4.cx, C4.b + g]
-      ], C_CTRL, "mCtrl", csw);
-    }
-
-    // -- C4 → Host  (upward to host bottom) --
-    if (host) {
-      ln(C4.cx, C4.t - g, host.cx, host.b + g, C_CTRL, "mCtrl", csw);
     }
   }
 
