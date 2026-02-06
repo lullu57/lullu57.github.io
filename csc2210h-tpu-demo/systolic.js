@@ -16,6 +16,7 @@
     grid:      "#d4ccbc",
     cell:      "#fffdf8",
     cellActive:"#fef3e0",
+    cellDone:  "#e6f5f2",   // light teal tint for completed cells
     weight:    "#b8860b",
     data:      "#1d6fa5",
     partial:   "#c94a1a",
@@ -187,6 +188,7 @@
     ctx.fillText("Weights (B) pre-loaded", gridX + cellSize * N / 2, gridY - cellSize * 0.9);
 
     // ---- Draw grid cells ----
+    // A cell (i,j) is "done" once cycle > i+j+N-1 (its last active k = N-1 occurs at cycle i+j+N-1)
     for (let i = 0; i < N; i++) {
       for (let j = 0; j < N; j++) {
         const x = gridX + j * cellSize;
@@ -194,19 +196,18 @@
 
         const d = dataInFlight[i][j];
         const isActive = d !== null;
+        const isDone = !isActive && partial[i][j] > 0 && cycle > i + j + N - 1;
 
         // Cell background
-        ctx.fillStyle = isActive ? C.cellActive : C.cell;
+        ctx.fillStyle = isDone ? C.cellDone : (isActive ? C.cellActive : C.cell);
         ctx.fillRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
 
         // Cell border
-        ctx.strokeStyle = isActive ? C.partial : C.grid;
-        ctx.lineWidth = isActive ? 1.5 : 0.5;
+        ctx.strokeStyle = isDone ? C.result : (isActive ? C.partial : C.grid);
+        ctx.lineWidth = (isActive || isDone) ? 1.5 : 0.5;
         ctx.strokeRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
 
-        // Weight value (always shown, small, top-left)
-        // For systolic array, cell (i,j) processes weight B[k][j] at step k = cycle-i-j
-        // But weights are pre-loaded. Show B column j values cycle through.
+        // Weight value (top-left) while active
         const k = cycle - i - j;
         if (k >= 0 && k < N) {
           ctx.fillStyle = C.weight;
@@ -223,8 +224,8 @@
           ctx.fillStyle = C.partial;
           ctx.font = `${Math.max(8, cellSize * 0.18)}px 'IBM Plex Mono', monospace`;
           ctx.fillText(`Σ=${partial[i][j]}`, x + cellSize / 2, y + cellSize * 0.76);
-        } else if (cycle >= totalCycles && partial[i][j] > 0) {
-          // Final result
+        } else if (isDone) {
+          // Cell finished — show final value in green immediately
           ctx.fillStyle = C.result;
           ctx.font = `bold ${Math.max(10, cellSize * 0.28)}px 'IBM Plex Mono', monospace`;
           ctx.fillText(partial[i][j], x + cellSize / 2, y + cellSize / 2);
