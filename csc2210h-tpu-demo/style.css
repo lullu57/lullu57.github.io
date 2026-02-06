@@ -169,8 +169,10 @@ body {
 .panel-header p {
   font-size: 0.82rem;
   color: var(--text-mid);
-  max-width: 80ch;
   line-height: 1.55;
+}
+@media (min-width: 900px) {
+  .panel-header p { max-width: none; }
 }
 .panel-header p strong {
   color: var(--accent-burn);
@@ -279,6 +281,7 @@ body {
   gap: 1rem;
 }
 .systolic-layout .card { display: flex; flex-direction: column; }
+.systolic-layout .card-title { margin-bottom: 0.15rem; }
 .systolic-layout canvas {
   width: 100%;
   border-radius: var(--radius);

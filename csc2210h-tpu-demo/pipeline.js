@@ -309,17 +309,25 @@
     }
 
     // ===== Legend bar =====
-    var legY = cpuY + stgH + 28;
+    var legGap = mob ? 24 : 38;
+    var legY = cpuY + stgH + legGap;
     var legItems = [
       { bg: COL.compute.bg, str: COL.compute.stroke, label: "Compute", dash: false },
       { bg: COL.buffer.bg,  str: COL.buffer.stroke,  label: "Buffer",  dash: false },
       { bg: COL.memory.bg,  str: COL.memory.stroke,  label: "Mem overhead", dash: true },
     ];
-    var legX = padL + labelW;
+    var swW = 12, swH = 10;
+    ctx.font = Math.max(7, 9 * fs) + "px 'IBM Plex Mono', monospace";
+    var legGapPx = mob ? 10 : 18;
+    var legTotalW = 0;
+    for (var i = 0; i < legItems.length; i++) {
+      legTotalW += swW + 5 + ctx.measureText(legItems[i].label).width + (i < legItems.length - 1 ? legGapPx : 0);
+    }
+    var legX = (W - legTotalW) / 2;
     ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
     for (var i = 0; i < legItems.length; i++) {
       var it = legItems[i];
-      var swW = 12, swH = 10;
       ctx.fillStyle = it.bg;
       ctx.fillRect(legX, legY - swH / 2, swW, swH);
       if (it.dash) {
@@ -332,30 +340,30 @@
         ctx.strokeRect(legX, legY - swH / 2, swW, swH);
       }
       ctx.fillStyle = COL.muted;
-      ctx.font = Math.max(7, 9 * fs) + "px 'IBM Plex Mono', monospace";
-      ctx.textBaseline = "middle";
       ctx.fillText(it.label, legX + swW + 5, legY);
-      legX += swW + 5 + ctx.measureText(it.label).width + (mob ? 10 : 18);
+      legX += swW + 5 + ctx.measureText(it.label).width + legGapPx;
     }
 
     // ===== Status bar =====
-    var statY = H - 8;
-    ctx.textAlign = "left";
+    var statPad = mob ? 12 : 12;
+    var statY = H - statPad;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
     if (cycle >= MAX_CYC) {
       ctx.fillStyle = COL.done.text;
       ctx.font = "bold " + Math.max(9, 11 * fs) + "px 'IBM Plex Sans', sans-serif";
       var msg = mob
         ? "TPU: " + TPU_FIN + " cyc  vs  CPU: " + CPU_FIN + " cyc  (" + (CPU_FIN / TPU_FIN).toFixed(1) + "\u00d7)"
         : "Complete \u2014 TPU: " + TPU_FIN + " cycles  vs  CPU: " + CPU_FIN + " cycles  (" + (CPU_FIN / TPU_FIN).toFixed(1) + "\u00d7 speedup)  \u2014  2 of 5 CPU stages are memory overhead";
-      ctx.fillText(msg, padL, statY);
+      ctx.fillText(msg, W / 2, statY);
     } else if (cycle >= TPU_FIN) {
       ctx.fillStyle = COL.done.text;
       ctx.font = Math.max(9, 11 * fs) + "px 'IBM Plex Sans', sans-serif";
-      ctx.fillText("TPU done in " + TPU_FIN + " cycles \u2014 CPU still processing (cycle " + cycle + "/" + CPU_FIN + ")", padL, statY);
+      ctx.fillText("TPU done in " + TPU_FIN + " cycles \u2014 CPU still processing (cycle " + cycle + "/" + CPU_FIN + ")", W / 2, statY);
     } else {
       ctx.fillStyle = COL.muted;
       ctx.font = Math.max(9, 11 * fs) + "px 'IBM Plex Sans', sans-serif";
-      ctx.fillText("Cycle " + cycle + " \u2014 " + NUM_LAYERS + " layers flowing through pipeline", padL, statY);
+      ctx.fillText("Cycle " + cycle + " \u2014 " + NUM_LAYERS + " layers flowing through pipeline", W / 2, statY);
     }
   }
 
@@ -366,13 +374,32 @@
   if (!canvas) return;
   var ctx = canvas.getContext("2d");
 
+  function getMinHeight(w) {
+    var mob = w < 450;
+    var fs = mob ? 0.8 : 1;
+    var titleH = Math.round(16 * fs);
+    var rowGap = mob ? 18 : 26;
+    var stgH = mob ? 40 : 52;
+    var tpuY = 6 + titleH;
+    var divY = tpuY + stgH + Math.round(rowGap * 0.6);
+    var cpuY = divY + 6 + titleH;
+    var legGap = mob ? 24 : 38;
+    var statPad = 12;
+    var legY = cpuY + stgH + legGap;
+    var legendBottom = legY + 5;
+    var minGap = 8;
+    var statusLineH = 14;
+    return legendBottom + minGap + statusLineH + statPad;
+  }
+
   function resize() {
     var parent = canvas.parentElement;
     var style  = getComputedStyle(parent);
     var px = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
     var w  = parent.clientWidth - px;
     if (w < 10) return;
-    var h = Math.max(210, Math.min(w * 0.4, 300));
+    var minH = getMinHeight(w);
+    var h = Math.max(minH, Math.min(w * 0.38, 280));
     canvas.width  = w * devicePixelRatio;
     canvas.height = h * devicePixelRatio;
     canvas.style.width  = w + "px";

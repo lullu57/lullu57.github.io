@@ -150,9 +150,11 @@
       <div class="panel-header">
         <h2>Systolic Array &mdash; How the TPU Multiplies Matrices</h2>
         <p>
-          The TPU's 256&times;256 matrix multiply unit uses a <strong>systolic array</strong> &mdash; data flows
-          left-to-right while pre-loaded weights sit in each cell. Partial sums accumulate downward as a
-          diagonal wavefront. Compare this with a CPU, which must repeatedly fetch the same data from memory.
+          The TPU's 256&times;256 matrix multiply unit uses a <strong>systolic array</strong> &mdash; weights are
+          <strong>pre-loaded</strong> into the array and activations flow through, so each value is loaded once
+          and reused across many cells (O(N&sup2;) reads). We show a <strong>simplified sequential CPU</strong> model
+          (one MAC at a time, no cache) to illustrate the memory-access difference; real CPUs use caches and SIMD
+          but still don't achieve the same data reuse as a systolic array.
         </p>
       </div>
 
@@ -184,9 +186,10 @@
       </div>
 
       <div class="insight">
-        <strong>Key insight:</strong> For an N&times;N multiply, the CPU needs O(N&sup3;) memory reads.
-        The systolic array needs only O(N&sup2;) &mdash; each value is loaded once and reused spatially.
-        This is why the TPU packs <strong>65,536 MACs</strong> on a die half the size of the GPU.
+        <strong>Key insight:</strong> For an N&times;N multiply, a naive (sequential, no-cache) CPU needs O(N&sup3;) memory reads.
+        The systolic array preloads weights and streams activations, so it needs only O(N&sup2;) &mdash; each value is
+        loaded once and reused spatially. Real CPUs parallelize and cache, but the TPU's dedicated data flow is why
+        it packs <strong>65,536 MACs</strong> on a die half the size of the GPU.
       </div>
     </section>
 

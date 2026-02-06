@@ -154,10 +154,10 @@
   function drawSystolic(ctx, w, h) {
     ctx.clearRect(0, 0, w, h);
 
-    const pad = 60;
+    const pad = 44;
     const cellSize = Math.min((w - pad * 2) / (N + 2), (h - pad * 2) / (N + 2));
     const gridX = pad + cellSize * 1.5;
-    const gridY = pad + cellSize * 1.5;
+    const gridY = pad + cellSize * 1.15;
 
     ctx.fillStyle = C.bg;
     ctx.fillRect(0, 0, w, h);
@@ -167,10 +167,10 @@
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
-    // Label
+    // Label — centered in canvas
     ctx.fillStyle = C.data;
     ctx.font = `bold ${Math.max(10, cellSize * 0.24)}px 'IBM Plex Sans', sans-serif`;
-    ctx.fillText("Activations (A)", gridX + cellSize * N / 2, pad * 0.45);
+    ctx.fillText("Activations (A)", w / 2, pad * 0.4);
 
     // Left column: activation values flowing in
     for (let i = 0; i < N; i++) {
@@ -191,10 +191,10 @@
       ctx.fillText(`Row ${i}`, gridX - cellSize * 1.2, y);
     }
 
-    // ---- Draw weight labels (top) ----
+    // ---- Draw weight labels (top) — centered in canvas ----
     ctx.fillStyle = C.weight;
     ctx.font = `bold ${Math.max(10, cellSize * 0.24)}px 'IBM Plex Sans', sans-serif`;
-    ctx.fillText("Weights (B) pre-loaded", gridX + cellSize * N / 2, gridY - cellSize * 0.9);
+    ctx.fillText("Weights (B) pre-loaded", w / 2, gridY - cellSize * 0.6);
 
     // ---- Draw grid cells ----
     // A cell (i,j) is "done" once cycle > i+j+N-1 (its last active k = N-1 occurs at cycle i+j+N-1)
@@ -263,16 +263,17 @@
       ctx.restore();
     }
 
-    // Status
+    // Status — centered in canvas, bottom-aligned
     ctx.font = `${Math.max(9, cellSize * 0.19)}px 'IBM Plex Sans', sans-serif`;
-    ctx.textAlign = "left";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
     if (cycle >= totalCycles) {
       ctx.fillStyle = C.result;
       const extra = cpuDone ? "" : "  (CPU still computing...)";
-      ctx.fillText("Done in " + totalCycles + " cycles — C = A \u00D7 B" + extra, pad, h - 12);
+      ctx.fillText("Done in " + totalCycles + " cycles — C = A \u00D7 B" + extra, w / 2, h - 12);
     } else {
       ctx.fillStyle = C.muted;
-      ctx.fillText(`Diagonal wavefront propagating (cycle ${cycle}/${totalCycles})`, pad, h - 12);
+      ctx.fillText(`Diagonal wavefront propagating (cycle ${cycle}/${totalCycles})`, w / 2, h - 12);
     }
   }
 
@@ -284,17 +285,17 @@
     ctx.fillStyle = C.bg;
     ctx.fillRect(0, 0, w, h);
 
-    const pad = 60;
+    const pad = 44;
     const cellSize = Math.min((w - pad * 2) / (N + 2), (h - pad * 2) / (N + 2));
-    const gridX = pad + cellSize * 0.5;
-    const gridY = pad + cellSize * 0.8;
+    const gridX = (w - N * cellSize) / 2;
+    const gridY = pad + cellSize * 1.15;
 
-    // Title labels
+    // Title — centered in canvas (same top space as TPU so matrices align)
     ctx.fillStyle = C.muted;
     ctx.font = `bold ${Math.max(10, cellSize * 0.24)}px 'IBM Plex Sans', sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("Result Matrix C (sequential computation)", gridX + cellSize * N / 2, pad * 0.45);
+    ctx.fillText("Result Matrix C (sequential computation)", w / 2, pad * 0.4);
 
     // Draw result grid
     for (let i = 0; i < N; i++) {
@@ -333,25 +334,26 @@
       }
     }
 
-    // Memory access visualization: show repeated reads
+    // Memory access visualization — centered in canvas
     if (!cpuDone) {
       const infoY = gridY + N * cellSize + cellSize * 0.8;
       ctx.fillStyle = C.memRead;
       ctx.font = `bold ${Math.max(10, cellSize * 0.22)}px 'IBM Plex Sans', sans-serif`;
-      ctx.textAlign = "left";
-      ctx.fillText(`Computing C[${cpuI}][${cpuJ}] — inner product step ${cpuK}`, pad, infoY);
+      ctx.textAlign = "center";
+      ctx.fillText(`Computing C[${cpuI}][${cpuJ}] — inner product step ${cpuK}`, w / 2, infoY);
 
       ctx.fillStyle = C.muted;
       ctx.font = `${Math.max(9, cellSize * 0.18)}px 'IBM Plex Sans', sans-serif`;
       ctx.fillText(
         `Every MAC requires 2 memory reads (no data reuse across cells)`,
-        pad, infoY + cellSize * 0.45
+        w / 2, infoY + cellSize * 0.45
       );
     } else {
       ctx.fillStyle = C.result;
       ctx.font = `${Math.max(9, cellSize * 0.19)}px 'IBM Plex Sans', sans-serif`;
-      ctx.textAlign = "left";
-      ctx.fillText("Complete — same result, but far more memory reads", pad, h - 12);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.fillText("Complete — same result, but far more memory reads", w / 2, h - 12);
     }
   }
 
@@ -422,8 +424,8 @@
     if (cycle < totalCycles) {
       systolicStep();
     }
-    // Advance CPU by N steps per visual cycle to keep pacing comparable
-    for (let s = 0; s < N; s++) cpuStep();
+    // Advance CPU one MAC so "inner product step k" updates visibly each frame
+    cpuStep();
     render();
   }
 
