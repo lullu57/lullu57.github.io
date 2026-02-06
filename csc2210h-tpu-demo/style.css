@@ -449,12 +449,91 @@ body {
 .present-btn:hover { background: #2a3d5c; }
 /* Tour modal styles are injected by present.js */
 
-/* ---- Responsive ---- */
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+/* -- Tablet (≤ 900px) -- */
 @media (max-width: 900px) {
   .systolic-layout, .perf-grid { grid-template-columns: 1fr; }
   .header { padding: 1rem; }
   .panel-container { padding: 1rem; }
-  .tabs { padding: 0 1rem; overflow-x: auto; }
+  .tabs { padding: 0 0.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tab-btn { padding: 0.6rem 0.9rem; font-size: 0.7rem; }
+}
+
+/* -- Mobile (≤ 600px) -- */
+@media (max-width: 600px) {
+  html { font-size: 14px; }
+
+  .header {
+    padding: 0.7rem 0.8rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+  .header h1 { font-size: 0.95rem; }
+  .header .subtitle { font-size: 0.62rem; }
+  .header-actions { margin-left: 0; width: 100%; justify-content: flex-end; }
+
+  .tabs {
+    padding: 0 0.4rem;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;       /* Firefox */
+    -webkit-overflow-scrolling: touch;
+  }
+  .tabs::-webkit-scrollbar { display: none; }   /* Chrome/Safari */
+  .tab-btn {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.62rem;
+    letter-spacing: 0.03em;
+    min-width: 0;
+  }
+
+  .panel-container { padding: 0.6rem; }
+  .panel-header h2 { font-size: 0.82rem; }
+  .panel-header p { font-size: 0.72rem; }
+
+  .card { padding: 0.7rem; margin-bottom: 0.7rem; }
+  .card-title { font-size: 0.65rem; }
+  .card-desc { font-size: 0.68rem; margin-left: 0.4rem; }
+
+  .controls { gap: 0.4rem; }
+  .controls button { font-size: 0.62rem; padding: 0.3rem 0.6rem; }
+  .controls label { font-size: 0.62rem; }
+  .controls input[type="range"] { width: 80px; }
+
+  .stat-badge { font-size: 0.6rem; padding: 0.2rem 0.4rem; }
+  .cycle-display { font-size: 0.65rem; }
+
+  .roofline-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+  .chip-toggle { font-size: 0.62rem; }
+
+  .insight { font-size: 0.7rem; padding: 0.5rem 0.7rem; }
+  .slider-val { font-size: 0.62rem; min-width: 50px; }
+
+  .legend { gap: 0.5rem; }
+  .legend-item { font-size: 0.6rem; }
+
+  /* Performance grid: always single column */
+  .perf-grid { grid-template-columns: 1fr; }
+
+  /* Systolic: stack the two canvases */
+  .systolic-layout { grid-template-columns: 1fr; }
+}
+
+/* -- Very small phones (≤ 400px) -- */
+@media (max-width: 400px) {
+  html { font-size: 13px; }
+  .header h1 { font-size: 0.85rem; }
+  .header h1 span { padding: 0.05em 0.2em; font-size: 0.85em; }
+  .tab-btn { padding: 0.45rem 0.45rem; font-size: 0.58rem; }
+  .card { padding: 0.5rem; }
 }
 
 /* ---- Page load animation ---- */

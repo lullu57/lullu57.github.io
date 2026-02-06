@@ -226,6 +226,29 @@
       transition: background 0.15s;
     }
     #tourNav button:hover { background: #ece5d8; }
+
+    /* Mobile: bottom-sheet style */
+    @media (max-width: 600px) {
+      #tourModal {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        top: auto !important;
+        right: 0 !important;
+        width: 100%;
+        max-width: 100%;
+        border-radius: 10px 10px 0 0;
+        border-bottom: none;
+        box-shadow: 0 -4px 24px rgba(42,37,32,0.2);
+        max-height: 45vh;
+        overflow-y: auto;
+      }
+      #tourModal.visible { transform: translateY(0); }
+      #tourArrow { display: none; }
+      #tourNotes { font-size: 0.76rem; padding: 0.6rem; }
+      #tourHeader { font-size: 0.65rem; padding: 0.5rem 0.7rem; }
+      #tourNav button { font-size: 0.62rem; padding: 0.25rem 0.55rem; }
+    }
   `;
   document.head.appendChild(css);
 
@@ -234,8 +257,11 @@
     var el = document.querySelector(step.target);
     if (!el) return;
 
-    // Scroll target into view — place it toward the top so there's room for modal
-    el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    var mobMode = window.innerWidth < 600;
+
+    // On mobile, just scroll target into view (top half) — modal is a fixed bottom sheet
+    el.scrollIntoView({ behavior: "smooth", block: mobMode ? "start" : "nearest" });
+    if (mobMode) return; // CSS handles fixed bottom positioning
 
     var arrow = document.getElementById("tourArrow");
     arrow.className = "";

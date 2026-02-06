@@ -10,9 +10,8 @@
   const container = document.getElementById("rooflineChart");
   const tip = document.getElementById("rooflineTip");
 
-  // ---- Dimensions ----
-  const margin = { top: 30, right: 30, bottom: 55, left: 65 };
-  let width, height;
+  // ---- Dimensions (responsive) ----
+  let margin, width, height;
 
   const svg = d3.select(container).append("svg");
   const g = svg.append("g");
@@ -96,8 +95,20 @@
   function render() {
     const containerW = container.clientWidth;
     if (containerW < 10) return; // panel not visible yet
+
+    // Responsive margins and sizing
+    const isMobile = containerW < 500;
+    const isSmall  = containerW < 700;
+    margin = {
+      top:    isMobile ? 20 : 30,
+      right:  isMobile ? 12 : 30,
+      bottom: isMobile ? 45 : 55,
+      left:   isMobile ? 40 : 65
+    };
     width = containerW - margin.left - margin.right;
-    height = Math.min(420, containerW * 0.5) - margin.top - margin.bottom;
+    // Give more relative height on mobile so the chart doesn't get squished
+    const heightRatio = isMobile ? 0.7 : (isSmall ? 0.55 : 0.5);
+    height = Math.min(420, containerW * heightRatio) - margin.top - margin.bottom;
 
     svg.attr("width", width + margin.left + margin.right)
        .attr("height", height + margin.top + margin.bottom);
@@ -111,21 +122,29 @@
     gX.attr("transform", `translate(0,${height})`).call(xAxis);
     gY.call(yAxis);
 
+    // Responsive font sizes
+    var tickFont  = isMobile ? 8 : 10;
+    var labelFont = isMobile ? 9 : 11;
+    var dotFont   = isMobile ? 8 : 10;
+    var annoFont  = isMobile ? 7 : 9;
+
     // Style axes
     svg.selectAll(".x-axis text, .y-axis text")
-      .attr("fill", "#8a7f72").attr("font-size", 10).attr("font-family", "'IBM Plex Mono', monospace");
+      .attr("fill", "#8a7f72").attr("font-size", tickFont).attr("font-family", "'IBM Plex Mono', monospace");
     svg.selectAll(".x-axis line, .y-axis line, .x-axis path, .y-axis path")
       .attr("stroke", "#c8bfad");
 
     // Axis labels
     xLabel
       .attr("x", margin.left + width / 2)
-      .attr("y", margin.top + height + 44)
-      .text("Operational Intensity (ops / weight byte)");
+      .attr("y", margin.top + height + (isMobile ? 36 : 44))
+      .attr("font-size", labelFont)
+      .text(isMobile ? "Ops / weight byte" : "Operational Intensity (ops / weight byte)");
     yLabel
       .attr("x", -(margin.top + height / 2))
-      .attr("y", 16)
-      .text("Performance (TOPS)");
+      .attr("y", isMobile ? 10 : 16)
+      .attr("font-size", labelFont)
+      .text(isMobile ? "TOPS" : "Performance (TOPS)");
 
     // Grid lines
     g.selectAll(".gridline").remove();
@@ -174,9 +193,9 @@
           .attr("y", yScale(chip.peakTOPS) - 8)
           .attr("text-anchor", "middle")
           .attr("fill", chip.color)
-          .attr("font-size", 9)
+          .attr("font-size", annoFont)
           .attr("opacity", 0.7)
-          .text(`${chip.name} (ridge: ${Math.round(ridge)})`);
+          .text(isMobile ? `${chip.key.toUpperCase()} (${Math.round(ridge)})` : `${chip.name} (ridge: ${Math.round(ridge)})`);
       }
 
       // Peak label on the right
@@ -187,7 +206,7 @@
           .attr("y", peakY - 5)
           .attr("text-anchor", "end")
           .attr("fill", chip.color)
-          .attr("font-size", 9)
+          .attr("font-size", annoFont)
           .attr("opacity", 0.7)
           .text(`${chip.peakTOPS} TOPS`);
       }
@@ -224,9 +243,13 @@
 
         const shape = chip.key === "tpu" ? "star" : chip.key === "gpu" ? "triangle" : "circle";
 
+        var dotSize = isMobile ? 70 : 120;
+        var dotSizeSmall = isMobile ? 55 : 100;
+        var dotR = isMobile ? 3.5 : 5;
+
         if (shape === "star") {
           dotsGroup.append("path")
-            .attr("d", d3.symbol().type(d3.symbolStar).size(120)())
+            .attr("d", d3.symbol().type(d3.symbolStar).size(dotSize)())
             .attr("transform", `translate(${cx},${cy})`)
             .attr("fill", app.color)
             .attr("stroke", "#fffdf8")
@@ -236,7 +259,7 @@
             .on("mouseleave", hideTip);
         } else if (shape === "triangle") {
           dotsGroup.append("path")
-            .attr("d", d3.symbol().type(d3.symbolTriangle).size(100)())
+            .attr("d", d3.symbol().type(d3.symbolTriangle).size(dotSizeSmall)())
             .attr("transform", `translate(${cx},${cy})`)
             .attr("fill", app.color)
             .attr("stroke", "#fffdf8")
@@ -246,7 +269,7 @@
             .on("mouseleave", hideTip);
         } else {
           dotsGroup.append("circle")
-            .attr("cx", cx).attr("cy", cy).attr("r", 5)
+            .attr("cx", cx).attr("cy", cy).attr("r", dotR)
             .attr("fill", app.color)
             .attr("stroke", "#fffdf8")
             .attr("stroke-width", 1)
@@ -255,13 +278,13 @@
             .on("mouseleave", hideTip);
         }
 
-        // Label (only for TPU to avoid clutter)
-        if (chip.key === "tpu") {
+        // Label (only for TPU to avoid clutter; hide on very small screens)
+        if (chip.key === "tpu" && !isMobile) {
           labelsGroup.append("text")
             .attr("x", cx + 8)
             .attr("y", cy - 6)
             .attr("fill", app.color)
-            .attr("font-size", 10)
+            .attr("font-size", dotFont)
             .attr("font-weight", 500)
             .text(app.name);
         }
@@ -276,20 +299,23 @@
     ];
     const legendG = g.selectAll(".roofline-legend").data([0]);
     const legEnter = legendG.enter().append("g").attr("class", "roofline-legend");
-    legEnter.merge(legendG).attr("transform", `translate(${width - 180}, 10)`);
+    var legX = isMobile ? width - 120 : width - 180;
+    legEnter.merge(legendG).attr("transform", `translate(${legX}, 4)`);
     const leg = legEnter.merge(legendG);
     leg.selectAll("*").remove();
 
+    var legSpacing = isMobile ? 14 : 18;
+    var legFont = isMobile ? 8 : 10;
     legendData.forEach((d, i) => {
-      const ly = i * 18;
+      const ly = i * legSpacing;
       leg.append("path")
-        .attr("d", d3.symbol().type(d.shape).size(60)())
+        .attr("d", d3.symbol().type(d.shape).size(isMobile ? 40 : 60)())
         .attr("transform", `translate(6,${ly})`)
         .attr("fill", d.color);
       leg.append("text")
-        .attr("x", 18).attr("y", ly + 4)
+        .attr("x", 16).attr("y", ly + 3)
         .attr("fill", "#8a7f72")
-        .attr("font-size", 10)
+        .attr("font-size", legFont)
         .attr("font-family", "'IBM Plex Mono', monospace")
         .text(d.label);
     });
@@ -300,22 +326,22 @@
       if (tpuRidge > xScale.domain()[0] && tpuRidge < xScale.domain()[1]) {
         labelsGroup.append("text")
           .attr("x", xScale(Math.sqrt(xScale.domain()[0] * tpuRidge)))
-          .attr("y", height - 8)
+          .attr("y", height - 6)
           .attr("text-anchor", "middle")
           .attr("fill", "#c94a1a")
-          .attr("font-size", 9)
+          .attr("font-size", isMobile ? 7 : 9)
           .attr("font-family", "'IBM Plex Mono', monospace")
           .attr("opacity", 0.5)
-          .text("MEMORY-BOUND");
+          .text(isMobile ? "MEM-BOUND" : "MEMORY-BOUND");
         labelsGroup.append("text")
           .attr("x", xScale(Math.sqrt(tpuRidge * xScale.domain()[1])))
-          .attr("y", height - 8)
+          .attr("y", height - 6)
           .attr("text-anchor", "middle")
           .attr("fill", "#c94a1a")
-          .attr("font-size", 9)
+          .attr("font-size", isMobile ? 7 : 9)
           .attr("font-family", "'IBM Plex Mono', monospace")
           .attr("opacity", 0.5)
-          .text("COMPUTE-BOUND");
+          .text(isMobile ? "COMPUTE" : "COMPUTE-BOUND");
       }
     }
   }

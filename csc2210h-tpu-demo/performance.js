@@ -16,27 +16,38 @@
   const gridLine = "#ece5d8";
   const monoFont = "'IBM Plex Mono', monospace";
 
+  // Responsive helpers
+  function isMobile() { return window.innerWidth < 600; }
+  function fontS(normal, small) { return isMobile() ? small : normal; }
+  function marginS() {
+    return isMobile()
+      ? { top: 16, right: 10, bottom: 34, left: 38 }
+      : { top: 20, right: 20, bottom: 40, left: 50 };
+  }
+
   // 1. Relative Performance Bar Chart (Table 6)
   function drawPerfBars() {
     const container = document.getElementById("perfBarChart");
     const cW = container.clientWidth;
     if (cW < 10) return; // panel not visible yet
     container.innerHTML = "";
-    const margin = { top: 20, right: 20, bottom: 40, left: 50 };
-    const width = cW - margin.left - margin.right;
-    const height = 240 - margin.top - margin.bottom;
+    var mob = isMobile();
+    var margin = marginS();
+    var width = cW - margin.left - margin.right;
+    var svgH = mob ? 200 : 240;
+    var height = svgH - margin.top - margin.bottom;
 
-    const svg = d3.select(container).append("svg")
-      .attr("width", cW).attr("height", 240);
-    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+    var svg = d3.select(container).append("svg")
+      .attr("width", cW).attr("height", svgH);
+    var g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-    const rp = DATA.relativePerf;
-    const apps = rp.apps;
-    const groups = ["cpu", "gpu", "tpu"];
+    var rp = DATA.relativePerf;
+    var apps = rp.apps;
+    var groups = ["cpu", "gpu", "tpu"];
 
-    const x0 = d3.scaleBand().domain(apps).range([0, width]).paddingInner(0.25).paddingOuter(0.1);
-    const x1 = d3.scaleBand().domain(groups).range([0, x0.bandwidth()]).padding(0.08);
-    const y = d3.scaleLog().domain([0.2, 100]).range([height, 0]).clamp(true);
+    var x0 = d3.scaleBand().domain(apps).range([0, width]).paddingInner(0.25).paddingOuter(0.1);
+    var x1 = d3.scaleBand().domain(groups).range([0, x0.bandwidth()]).padding(0.08);
+    var y = d3.scaleLog().domain([0.2, 100]).range([height, 0]).clamp(true);
 
     [0.5, 1, 5, 10, 50].forEach(v => {
       g.append("line").attr("x1", 0).attr("x2", width)
@@ -46,18 +57,18 @@
 
     apps.forEach((app, ai) => {
       groups.forEach(gk => {
-        const val = rp[gk][ai];
+        var val = rp[gk][ai];
         g.append("rect")
           .attr("x", x0(app) + x1(gk)).attr("y", y(val))
           .attr("width", x1.bandwidth())
           .attr("height", Math.max(0, height - y(val)))
           .attr("fill", chipColors[gk]).attr("rx", 2).attr("opacity", 0.85);
 
-        if (val >= 1) {
+        if (val >= 1 && (!mob || val >= 5)) {
           g.append("text")
             .attr("x", x0(app) + x1(gk) + x1.bandwidth() / 2)
-            .attr("y", y(val) - 4).attr("text-anchor", "middle")
-            .attr("fill", chipColors[gk]).attr("font-size", 9)
+            .attr("y", y(val) - 3).attr("text-anchor", "middle")
+            .attr("fill", chipColors[gk]).attr("font-size", fontS(9, 7))
             .attr("font-family", monoFont)
             .text(val + "x");
         }
@@ -66,17 +77,19 @@
 
     g.append("g").attr("transform", `translate(0,${height})`)
       .call(d3.axisBottom(x0).tickSizeOuter(0))
-      .selectAll("text").attr("fill", axisText).attr("font-size", 10).attr("font-family", monoFont);
+      .selectAll("text").attr("fill", axisText).attr("font-size", fontS(10, 7)).attr("font-family", monoFont);
     g.selectAll(".domain, .tick line").attr("stroke", axisLine);
 
     g.append("g")
       .call(d3.axisLeft(y).tickValues([0.5, 1, 5, 10, 50]).tickFormat(d => d + "x").tickSizeOuter(0))
-      .selectAll("text").attr("fill", axisText).attr("font-size", 9).attr("font-family", monoFont);
+      .selectAll("text").attr("fill", axisText).attr("font-size", fontS(9, 7)).attr("font-family", monoFont);
     g.selectAll(".domain, .tick line").attr("stroke", axisLine);
 
     g.append("text").attr("x", width).attr("y", -6).attr("text-anchor", "end")
-      .attr("fill", axisText).attr("font-size", 9).attr("font-family", monoFont)
-      .text(`GM: GPU ${rp.geoMean.gpu}x, TPU ${rp.geoMean.tpu}x | WM: GPU ${rp.weightedMean.gpu}x, TPU ${rp.weightedMean.tpu}x`);
+      .attr("fill", axisText).attr("font-size", fontS(9, 6)).attr("font-family", monoFont)
+      .text(mob
+        ? `TPU ${rp.geoMean.tpu}x GM, ${rp.weightedMean.tpu}x WM`
+        : `GM: GPU ${rp.geoMean.gpu}x, TPU ${rp.geoMean.tpu}x | WM: GPU ${rp.weightedMean.gpu}x, TPU ${rp.weightedMean.tpu}x`);
 
     const legend = document.getElementById("perfLegend");
     legend.innerHTML = "";
@@ -91,16 +104,21 @@
     const cW = container.clientWidth;
     if (cW < 10) return; // panel not visible yet
     container.innerHTML = "";
-    const margin = { top: 20, right: 20, bottom: 40, left: 50 };
-    const width = cW - margin.left - margin.right;
-    const height = 240 - margin.top - margin.bottom;
+    var mob = isMobile();
+    var margin = marginS();
+    var width = cW - margin.left - margin.right;
+    var svgH = mob ? 200 : 240;
+    var height = svgH - margin.top - margin.bottom;
 
-    const svg = d3.select(container).append("svg")
-      .attr("width", cW).attr("height", 240);
-    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+    var svg = d3.select(container).append("svg")
+      .attr("width", cW).attr("height", svgH);
+    var g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-    const categories = ["GM (Total)", "WM (Total)", "GM (Incr.)", "WM (Incr.)"];
-    const values = {
+    var categories = mob
+      ? ["GM Tot", "WM Tot", "GM Inc", "WM Inc"]
+      : ["GM (Total)", "WM (Total)", "GM (Incr.)", "WM (Incr.)"];
+    var fullCats = ["GM (Total)", "WM (Total)", "GM (Incr.)", "WM (Incr.)"];
+    var values = {
       gpu: [DATA.perfPerWatt.total.geoMean.gpu, DATA.perfPerWatt.total.weightedMean.gpu,
             DATA.perfPerWatt.incremental.geoMean.gpu, DATA.perfPerWatt.incremental.weightedMean.gpu],
       tpu: [DATA.perfPerWatt.total.geoMean.tpu, DATA.perfPerWatt.total.weightedMean.tpu,
@@ -109,11 +127,11 @@
                  DATA.perfPerWatt.incremental.geoMean.tpuPrime, DATA.perfPerWatt.incremental.weightedMean.tpuPrime],
     };
 
-    const groups = ["gpu", "tpu", "tpuPrime"];
-    const x0 = d3.scaleBand().domain(categories).range([0, width]).paddingInner(0.2).paddingOuter(0.1);
-    const x1 = d3.scaleBand().domain(groups).range([0, x0.bandwidth()]).padding(0.08);
-    const yMax = d3.max(groups.flatMap(gk => values[gk]));
-    const y = d3.scaleLinear().domain([0, yMax * 1.1]).range([height, 0]);
+    var groups = ["gpu", "tpu", "tpuPrime"];
+    var x0 = d3.scaleBand().domain(categories).range([0, width]).paddingInner(0.2).paddingOuter(0.1);
+    var x1 = d3.scaleBand().domain(groups).range([0, x0.bandwidth()]).padding(0.08);
+    var yMax = d3.max(groups.flatMap(gk => values[gk]));
+    var y = d3.scaleLinear().domain([0, yMax * 1.1]).range([height, 0]);
 
     y.ticks(5).forEach(v => {
       g.append("line").attr("x1", 0).attr("x2", width)
@@ -123,30 +141,32 @@
 
     categories.forEach((cat, ci) => {
       groups.forEach(gk => {
-        const val = values[gk][ci];
+        var val = values[gk][ci];
         g.append("rect")
           .attr("x", x0(cat) + x1(gk)).attr("y", y(val))
           .attr("width", x1.bandwidth())
           .attr("height", Math.max(0, height - y(val)))
           .attr("fill", chipColors[gk]).attr("rx", 2).attr("opacity", 0.85);
-        g.append("text")
-          .attr("x", x0(cat) + x1(gk) + x1.bandwidth() / 2)
-          .attr("y", y(val) - 4).attr("text-anchor", "middle")
-          .attr("fill", chipColors[gk]).attr("font-size", 8)
-          .attr("font-family", monoFont)
-          .text(val + "x");
+        if (!mob || val >= 20) {
+          g.append("text")
+            .attr("x", x0(cat) + x1(gk) + x1.bandwidth() / 2)
+            .attr("y", y(val) - 3).attr("text-anchor", "middle")
+            .attr("fill", chipColors[gk]).attr("font-size", fontS(8, 6))
+            .attr("font-family", monoFont)
+            .text(val + "x");
+        }
       });
     });
 
     g.append("g").attr("transform", `translate(0,${height})`)
       .call(d3.axisBottom(x0).tickSizeOuter(0))
-      .selectAll("text").attr("fill", axisText).attr("font-size", 8).attr("font-family", monoFont)
-      .attr("transform", "rotate(-12)").attr("text-anchor", "end");
+      .selectAll("text").attr("fill", axisText).attr("font-size", fontS(8, 6)).attr("font-family", monoFont)
+      .attr("transform", mob ? "rotate(-20)" : "rotate(-12)").attr("text-anchor", "end");
     g.selectAll(".domain, .tick line").attr("stroke", axisLine);
 
     g.append("g")
       .call(d3.axisLeft(y).ticks(5).tickFormat(d => d + "x").tickSizeOuter(0))
-      .selectAll("text").attr("fill", axisText).attr("font-size", 9).attr("font-family", monoFont);
+      .selectAll("text").attr("fill", axisText).attr("font-size", fontS(9, 7)).attr("font-family", monoFont);
     g.selectAll(".domain, .tick line").attr("stroke", axisLine);
 
     const legend = document.getElementById("wattLegend");
@@ -215,12 +235,16 @@
     var cW = container.clientWidth;
     if (cW < 10) return;
     container.innerHTML = "";
-    var margin = { top: 36, right: 30, bottom: 50, left: 65 };
+    var mob = isMobile();
+    var margin = mob
+      ? { top: 30, right: 10, bottom: 40, left: 42 }
+      : { top: 36, right: 30, bottom: 50, left: 65 };
     var width = cW - margin.left - margin.right;
-    var height = 280 - margin.top - margin.bottom;
+    var svgH = mob ? 230 : 280;
+    var height = svgH - margin.top - margin.bottom;
 
     var svg = d3.select(container).append("svg")
-      .attr("width", cW).attr("height", 280);
+      .attr("width", cW).attr("height", svgH);
     var g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     var deadline = parseFloat(document.getElementById("latencySlider").value);
@@ -285,51 +309,55 @@
         // IPS label
         g.append("text")
           .attr("x", x(r.chip) + x.bandwidth() / 2)
-          .attr("y", y(r.ips) - 18).attr("text-anchor", "middle")
-          .attr("fill", col).attr("font-size", 12)
+          .attr("y", y(r.ips) - (mob ? 12 : 18)).attr("text-anchor", "middle")
+          .attr("fill", col).attr("font-size", fontS(12, 9))
           .attr("font-family", monoFont).attr("font-weight", 700)
           .text(d3.format(",")(r.ips) + " IPS");
 
         // % of peak + batch size
         g.append("text")
           .attr("x", x(r.chip) + x.bandwidth() / 2)
-          .attr("y", y(r.ips) - 5).attr("text-anchor", "middle")
-          .attr("fill", axisText).attr("font-size", 10).attr("font-family", monoFont)
-          .text(r.pctMax + "% peak  ·  batch " + r.batch);
+          .attr("y", y(r.ips) - (mob ? 3 : 5)).attr("text-anchor", "middle")
+          .attr("fill", axisText).attr("font-size", fontS(10, 7)).attr("font-family", monoFont)
+          .text(mob ? r.pctMax + "% b" + r.batch : r.pctMax + "% peak  \u00b7  batch " + r.batch);
       } else {
         g.append("text")
           .attr("x", x(r.chip) + x.bandwidth() / 2)
           .attr("y", height / 2).attr("text-anchor", "middle")
-          .attr("fill", col).attr("font-size", 11).attr("font-family", monoFont)
-          .text("Cannot meet deadline");
+          .attr("fill", col).attr("font-size", fontS(11, 8)).attr("font-family", monoFont)
+          .text(mob ? "N/A" : "Cannot meet deadline");
       }
     });
 
     // Axes
     g.append("g").attr("transform", "translate(0," + height + ")")
       .call(d3.axisBottom(x).tickSizeOuter(0))
-      .selectAll("text").attr("fill", axisText).attr("font-size", 12).attr("font-family", monoFont);
+      .selectAll("text").attr("fill", axisText).attr("font-size", fontS(12, 9)).attr("font-family", monoFont);
     g.selectAll(".domain, .tick line").attr("stroke", axisLine);
 
     g.append("g")
       .call(d3.axisLeft(y).ticks(5).tickFormat(function(d) { return d >= 1000 ? d3.format(".0s")(d) : d; }).tickSizeOuter(0))
-      .selectAll("text").attr("fill", axisText).attr("font-size", 10).attr("font-family", monoFont);
+      .selectAll("text").attr("fill", axisText).attr("font-size", fontS(10, 7)).attr("font-family", monoFont);
     g.selectAll(".domain, .tick line").attr("stroke", axisLine);
 
     svg.append("text").attr("transform", "rotate(-90)")
-      .attr("x", -(margin.top + height / 2)).attr("y", 14)
-      .attr("text-anchor", "middle").attr("fill", axisText).attr("font-size", 11).attr("font-family", monoFont)
-      .text("Inferences / sec (MLP0)");
+      .attr("x", -(margin.top + height / 2)).attr("y", mob ? 8 : 14)
+      .attr("text-anchor", "middle").attr("fill", axisText).attr("font-size", fontS(11, 8)).attr("font-family", monoFont)
+      .text(mob ? "IPS (MLP0)" : "Inferences / sec (MLP0)");
 
     // Top annotation line 1: legend
     g.append("text").attr("x", 0).attr("y", -18)
-      .attr("fill", "#b8860b").attr("font-size", 9).attr("font-family", monoFont)
-      .text("Dashed = max (no deadline)  |  Solid = achievable within " + deadline.toFixed(0) + " ms");
+      .attr("fill", "#b8860b").attr("font-size", fontS(9, 7)).attr("font-family", monoFont)
+      .text(mob
+        ? "Dashed = max | Solid = within " + deadline.toFixed(0) + " ms"
+        : "Dashed = max (no deadline)  |  Solid = achievable within " + deadline.toFixed(0) + " ms");
 
     // Top annotation line 2: direction hint
-    g.append("text").attr("x", 0).attr("y", -6)
-      .attr("fill", axisText).attr("font-size", 9).attr("font-family", monoFont).attr("opacity", 0.7)
-      .text("\u2190 Tighter deadline = smaller batches = less throughput");
+    if (!mob) {
+      g.append("text").attr("x", 0).attr("y", -6)
+        .attr("fill", axisText).attr("font-size", 9).attr("font-family", monoFont).attr("opacity", 0.7)
+        .text("\u2190 Tighter deadline = smaller batches = less throughput");
+    }
   }
 
   document.getElementById("latencySlider").addEventListener("input", drawLatency);
