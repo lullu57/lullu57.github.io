@@ -59,7 +59,10 @@
   let cpuResult;
   let cpuDone = false;
 
-  const totalCycles = 2 * N - 1; // cycles for full wavefront to complete
+  // Cell (i,j) is active from cycle i+j to i+j+N-1.
+  // The last cell (N-1,N-1) finishes at cycle 2(N-1)+(N-1) = 3(N-1).
+  // Total cycles needed = 3(N-1) + 1 = 3N - 2.
+  const totalCycles = 3 * N - 2;
   const totalCpuSteps = N * N * N;
 
   function resetState() {
