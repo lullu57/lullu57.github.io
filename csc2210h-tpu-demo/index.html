@@ -256,12 +256,12 @@
           <div id="perfWattChart"></div>
           <div class="legend" id="wattLegend"></div>
         </div>
-        <div class="card">
+        <div class="card card-full">
           <div class="card-title">Die Area Breakdown</div>
           <p class="card-desc">How each chip allocates its silicon. The TPU dedicates 67% to compute datapath vs ~24% for CPU/GPU. Minimal control logic means more room for MAC units.</p>
-          <div id="dieAreaChart" style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;"></div>
+          <div id="dieAreaChart" style="display:flex; gap:2rem; justify-content:center; flex-wrap:wrap;"></div>
         </div>
-        <div class="card">
+        <div class="card card-full">
           <div class="card-title">Latency vs Throughput (MLP0, 7&thinsp;ms deadline)</div>
           <p class="card-desc">Tighter latency deadlines force smaller batch sizes, reducing throughput. The TPU&rsquo;s deterministic execution retains more throughput under strict deadlines than CPU or GPU.</p>
           <div id="latencyChart"></div>

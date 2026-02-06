@@ -187,20 +187,26 @@
       { title: "CPU/GPU Die (~600 mm\u00B2)", data: DATA.dieArea.cpuGpu },
     ];
 
+    var mob = isMobile();
+    var cW = container.clientWidth;
+
     configs.forEach(function(cfg) {
       var wrap = document.createElement("div");
       wrap.style.textAlign = "center";
-      wrap.style.flex = "1";
-      wrap.style.minWidth = "200px";
+      wrap.style.flex = "1 1 0";
+      wrap.style.minWidth = mob ? "200px" : "320px";
       container.appendChild(wrap);
 
-      var size = Math.min(220, Math.floor((container.clientWidth - 32) / 2));
+      var halfW = Math.floor((cW - 48) / 2);
+      var size = mob ? Math.min(200, cW - 32) : Math.min(260, halfW);
       var radius = size / 2 - 10, innerR = radius * 0.45;
-      var legendH = cfg.data.length * 18 + 12;
+      var legendH = cfg.data.length * 20 + 12;
+      var svgW = mob ? Math.max(size, 240) : Math.max(size + 80, 360);
       var svgH = size + 30 + legendH;
 
       var svg = d3.select(wrap).append("svg")
-        .attr("width", Math.max(size, 240)).attr("height", svgH);
+        .attr("width", svgW).attr("height", svgH)
+        .style("display", "block").style("margin", "0 auto");
       var gg = svg.append("g")
         .attr("transform", "translate(" + size / 2 + "," + size / 2 + ")");
 
@@ -211,17 +217,18 @@
         .attr("d", arc).attr("fill", function(d) { return d.data.color; })
         .attr("stroke", "#fffdf8").attr("stroke-width", 1.5).attr("opacity", 0.9);
 
-      svg.append("text").attr("x", size / 2).attr("y", size + 16)
+      svg.append("text").attr("x", size / 2).attr("y", size + 18)
         .attr("text-anchor", "middle").attr("fill", "#2a2520")
-        .attr("font-size", 11).attr("font-weight", 600).text(cfg.title);
+        .attr("font-size", mob ? 11 : 13).attr("font-weight", 700)
+        .attr("font-family", monoFont).text(cfg.title);
 
-      var leg = svg.append("g").attr("transform", "translate(8, " + (size + 28) + ")");
+      var leg = svg.append("g").attr("transform", "translate(8, " + (size + 32) + ")");
       cfg.data.forEach(function(d, i) {
-        var ly = i * 18;
-        leg.append("rect").attr("x", 0).attr("y", ly).attr("width", 12).attr("height", 12)
+        var ly = i * 20;
+        leg.append("rect").attr("x", 0).attr("y", ly).attr("width", 13).attr("height", 13)
           .attr("fill", d.color).attr("rx", 2);
-        leg.append("text").attr("x", 18).attr("y", ly + 10)
-          .attr("fill", "#5c5347").attr("font-size", 10).attr("font-family", monoFont)
+        leg.append("text").attr("x", 20).attr("y", ly + 11)
+          .attr("fill", "#5c5347").attr("font-size", mob ? 10 : 11.5).attr("font-family", monoFont)
           .text(d.pct + "% " + d.label);
       });
     });

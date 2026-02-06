@@ -63,7 +63,7 @@ body {
   flex-wrap: wrap;
   background: var(--bg-card);
   position: relative;
-  max-width: calc(960px + 4rem);
+  max-width: calc(1100px + 4rem);
   margin: 0 auto;
 }
 .header::after {
@@ -112,7 +112,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
-  max-width: calc(960px + 4rem);
+  max-width: calc(1100px + 4rem);
   margin: 0 auto;
 }
 .tab-btn {
@@ -140,7 +140,7 @@ body {
 /* ---- Panel Container ---- */
 .panel-container {
   padding: 1.5rem 2rem 3rem;
-  max-width: 960px;
+  max-width: 1100px;
   margin: 0 auto;
 }
 .panel { display: none; }
@@ -385,6 +385,8 @@ body {
   gap: 1rem;
 }
 .perf-grid .card svg { width: 100%; }
+/* Die area card: span full width so donut charts sit side by side */
+.perf-grid .card-full { grid-column: 1 / -1; }
 
 /* ---- Legend ---- */
 .legend {
@@ -516,19 +518,23 @@ body {
 .arch-compute { background: #ffe0b2; border-color: #ffcc80; color: #e65100; }
 .arch-ctrl    { background: #ef9a9a; border-color: #ef5350; color: #b71c1c; }
 
-/* Arrows */
+/* Arrows — old text arrows hidden on desktop, replaced by SVG */
 .arch-arrow {
   font-family: var(--font-mono);
-  font-size: 0.52rem;
-  color: var(--text-muted);
+  font-size: 0;
+  color: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   white-space: nowrap;
-  opacity: 0.7;
+  opacity: 0;
+  pointer-events: none;
 }
 .arch-arrow-h { writing-mode: horizontal-tb; }
 .arch-arrow-v { writing-mode: horizontal-tb; }
+
+/* SVG arrow overlay */
+.arch-svg-arrows { pointer-events: none; }
 
 /* Tooltip */
 .arch-tip {
