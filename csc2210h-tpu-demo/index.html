@@ -22,7 +22,8 @@
 
   <!-- ============ Tab Bar ============ -->
   <nav class="tabs" id="tabBar">
-    <button class="tab-btn active" data-tab="systolic">01 &mdash; Systolic Array</button>
+    <button class="tab-btn active" data-tab="arch">00 &mdash; Architecture</button>
+    <button class="tab-btn" data-tab="systolic">01 &mdash; Systolic Array</button>
     <button class="tab-btn" data-tab="roofline">02 &mdash; Roofline Model</button>
     <button class="tab-btn" data-tab="performance">03 &mdash; Performance</button>
   </nav>
@@ -30,8 +31,102 @@
   <!-- ============ Panels ============ -->
   <main class="panel-container">
 
+    <!-- ---- Panel 0: Architecture ---- -->
+    <section class="panel active" id="panel-arch">
+      <div class="panel-header">
+        <h2>TPU &mdash; High-Level Chip Architecture</h2>
+        <p>
+          The TPU is a <strong>domain-specific ASIC</strong> designed in just 15 months. It strips away the
+          complexity of general-purpose processors &mdash; no caches, no branch prediction, no out-of-order
+          execution &mdash; and dedicates the silicon to a massive systolic array and on-chip buffers.
+          <strong>Hover</strong> (or tap) any block to see what it does and how it compares to CPU/GPU.
+        </p>
+      </div>
+
+      <div class="card" style="padding:1.5rem; overflow:visible;">
+        <div class="arch-diagram" id="archDiagram">
+
+          <!-- Row 1: DDR3 DRAM -->
+          <div class="arch-block arch-io" id="arch-dram" style="grid-area:dram;">
+            DDR3 DRAM<br><small>8 GiB</small>
+          </div>
+
+          <!-- Row 2 -->
+          <div class="arch-block arch-io" id="arch-ddr" style="grid-area:ddr;">
+            DDR3-2133<br>Interface
+          </div>
+          <div class="arch-block arch-buffer" id="arch-wfifo" style="grid-area:wfifo;">
+            Weight FIFO<br><small>(Weight Fetcher)</small>
+          </div>
+
+          <!-- Row 3: main data path -->
+          <div class="arch-block arch-io" id="arch-pcie" style="grid-area:pcie;">
+            PCIe Gen3<br>&times;16
+          </div>
+          <div class="arch-block arch-buffer" id="arch-host" style="grid-area:host;">
+            Host<br>Interface
+          </div>
+          <div class="arch-block arch-buffer arch-block-large" id="arch-ubuf" style="grid-area:ubuf;">
+            Unified Buffer<br><small>24 MiB activation storage</small>
+          </div>
+          <div class="arch-block arch-buffer" id="arch-setup" style="grid-area:setup;">
+            Systolic<br>Data Setup
+          </div>
+          <div class="arch-block arch-compute arch-block-large" id="arch-mmu" style="grid-area:mmu;">
+            Matrix Multiply<br>Unit<br><small>256&times;256 &middot; 64K MACs/cycle</small>
+          </div>
+
+          <!-- Row 4 -->
+          <div class="arch-block arch-compute" id="arch-acc" style="grid-area:acc;">
+            Accumulators<br><small>4 MiB</small>
+          </div>
+
+          <!-- Row 5 -->
+          <div class="arch-block arch-ctrl" id="arch-ctrl" style="grid-area:ctrl;">
+            Control
+          </div>
+          <div class="arch-block arch-compute" id="arch-act" style="grid-area:act;">
+            Activation
+          </div>
+
+          <!-- Row 6 -->
+          <div class="arch-block arch-ctrl" id="arch-instr" style="grid-area:instr;">
+            Instr
+          </div>
+          <div class="arch-block arch-compute" id="arch-norm" style="grid-area:norm;">
+            Normalize / Pool
+          </div>
+
+          <!-- Bandwidth arrows (CSS-styled) -->
+          <div class="arch-arrow arch-arrow-v" style="grid-area:a1;">30 GiB/s</div>
+          <div class="arch-arrow arch-arrow-h" style="grid-area:a2;">30 GiB/s</div>
+          <div class="arch-arrow arch-arrow-h" style="grid-area:a3;">14 GiB/s</div>
+          <div class="arch-arrow arch-arrow-h" style="grid-area:a4;">14 GiB/s</div>
+          <div class="arch-arrow arch-arrow-h" style="grid-area:a5;">167 GiB/s</div>
+          <div class="arch-arrow arch-arrow-v" style="grid-area:a6;">30 GiB/s</div>
+        </div>
+
+        <!-- Tooltip container -->
+        <div class="arch-tip" id="archTip"></div>
+
+        <!-- Legend -->
+        <div class="arch-legend">
+          <span class="arch-leg-item"><span class="arch-leg-sw arch-leg-io"></span> Off-Chip I/O</span>
+          <span class="arch-leg-item"><span class="arch-leg-sw arch-leg-buf"></span> Data Buffer</span>
+          <span class="arch-leg-item"><span class="arch-leg-sw arch-leg-comp"></span> Computation</span>
+          <span class="arch-leg-item"><span class="arch-leg-sw arch-leg-ctrl"></span> Control</span>
+        </div>
+      </div>
+
+      <div class="insight">
+        <strong>Key insight:</strong> The TPU dedicates <strong>67% of die area to compute</strong> and just
+        <strong>2% to control</strong>. CPUs spend &sim;25% on control (branch prediction, OoO execution).
+        By dropping all general-purpose complexity, the TPU fits <strong>25&times; more MACs</strong> in half the die area.
+      </div>
+    </section>
+
     <!-- ---- Panel 1: Systolic Array ---- -->
-    <section class="panel active" id="panel-systolic">
+    <section class="panel" id="panel-systolic">
       <div class="panel-header">
         <h2>Systolic Array &mdash; How the TPU Multiplies Matrices</h2>
         <p>
@@ -177,6 +272,7 @@
   <script src="systolic.js"></script>
   <script src="roofline.js"></script>
   <script src="performance.js"></script>
+  <script src="arch.js"></script>
   <script src="present.js"></script>
   <script>
     // ---- Tab switching ----

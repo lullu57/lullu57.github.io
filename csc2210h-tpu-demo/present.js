@@ -12,19 +12,29 @@
   // position: preferred side for the modal ("bottom" | "top" | "right" | "left")
   //           The algorithm will fall back to another side if the modal would
   //           cover the target element.
+  // Total steps count is computed dynamically
   const steps = [
+    // ---- Architecture overview (new) ----
     {
-      tab: "systolic",
-      target: ".panel-header",
+      tab: "arch",
+      target: "#panel-arch .panel-header",
       position: "bottom",
-      title: "1/11 — The Problem",
-      notes: "In 2013 Google projected that voice search using DNNs would <strong>double datacenter compute demand</strong>. CPUs were too slow, GPUs too power-hungry. They needed 10\u00d7 cost-performance improvement — so they built a custom ASIC in just <strong>15 months</strong>: the Tensor Processing Unit.",
+      title: "The Problem",
+      notes: "In 2013 Google projected that voice search using DNNs would <strong>double datacenter compute demand</strong>. CPUs were too slow, GPUs too power-hungry. They needed 10\u00d7 cost-performance improvement \u2014 so they built a custom ASIC in just <strong>15 months</strong>: the Tensor Processing Unit.",
     },
+    {
+      tab: "arch",
+      target: "#arch-mmu",
+      position: "left",
+      title: "TPU Architecture Overview",
+      notes: "This block diagram shows the TPU's data path. <strong>Hover any block</strong> to see what it does and how it compares to CPU/GPU. Key takeaway: 67% of die area goes to the <strong>Matrix Multiply Unit</strong> (orange) \u2014 65,536 8-bit MACs. Only 2% is control logic. The CPU spends 25% on control.",
+    },
+    // ---- Systolic array ----
     {
       tab: "systolic",
       target: "#canvasSystolic",
       position: "left",
-      title: "2/11 — Systolic Array: The Heart of the TPU",
+      title: "Systolic Array: The Heart of the TPU",
       notes: "The TPU's core is a <strong>256\u00d7256 systolic array</strong> of 8-bit MAC units. Activations flow left-to-right, weights are pre-loaded. Each cell computes a partial sum and passes it down. Press <strong>Play</strong> to see the diagonal wavefront propagate.",
       action: function () { document.getElementById("btnReset").click(); }
     },
@@ -32,29 +42,30 @@
       tab: "systolic",
       target: ".stat-row",
       position: "top",
-      title: "3/11 — Data Reuse: TPU vs CPU",
-      notes: "Watch the <strong>memory read counters</strong>. The TPU loads each value <em>once</em> and reuses it across the array. The CPU fetches both operands for <em>every single MAC</em>. For N\u00d7N: <strong>O(N\u00b2) vs O(N\u00b3)</strong> memory reads — the key to fitting 65,536 MACs on a small die.",
+      title: "Data Reuse: TPU vs CPU",
+      notes: "Watch the <strong>memory read counters</strong>. The TPU loads each value <em>once</em> and reuses it across the array. The CPU fetches both operands for <em>every single MAC</em>. For N\u00d7N: <strong>O(N\u00b2) vs O(N\u00b3)</strong> memory reads \u2014 the key to fitting 65,536 MACs on a small die.",
       action: function () { document.getElementById("btnPlayPause").click(); }
     },
+    // ---- Roofline ----
     {
       tab: "roofline",
       target: "#rooflineChart",
       position: "left",
-      title: "4/11 — Roofline Model Overview",
+      title: "Roofline Model Overview",
       notes: "The Roofline model plots attainable <strong>TOPS</strong> (y) vs <strong>operational intensity</strong> ops/byte (x). Slanted region = <em>memory-bound</em>. Flat ceiling = <em>compute-bound</em>. Three rooflines: CPU (gray), GPU (green), TPU (orange).",
     },
     {
       tab: "roofline",
       target: "#rooflineChart",
       position: "left",
-      title: "5/11 — Memory-Bound Workloads",
+      title: "Memory-Bound Workloads",
       notes: "4 of 6 production apps (MLPs + LSTMs) sit under the <strong>slanted part</strong> — memory-bound, not compute-bound. Only the CNNs hit the flat ceiling. Yet architects focus on CNNs, which are just <strong>5% of Google's datacenter NN workload</strong>.",
     },
     {
       tab: "roofline",
       target: "#memBwSlider",
       position: "top",
-      title: "6/11 — TPU': What If Better Memory?",
+      title: "TPU': What If Better Memory?",
       notes: "Drag the slider to ~170 GB/s (GDDR5). The ridge point shifts left and memory-bound apps <strong>triple</strong> in performance. Upgrading memory alone makes the TPU <strong>30–50\u00d7 faster</strong> than CPU/GPU. The bottleneck was memory, not compute.",
       action: function () {
         document.getElementById("memBwSlider").value = 34;
@@ -65,28 +76,28 @@
       tab: "performance",
       target: "#perfBarChart",
       position: "right",
-      title: "7/11 — Relative Performance",
+      title: "Relative Performance",
       notes: "TPU is <strong>14.5\u00d7 faster</strong> (geo-mean) to <strong>29.2\u00d7</strong> (weighted) vs CPU. The K80 GPU is barely faster than CPU for inference — just 1.1\u00d7. The GPU's throughput-oriented arch struggles with strict latency requirements.",
     },
     {
       tab: "performance",
       target: "#perfWattChart",
       position: "right",
-      title: "8/11 — Performance per Watt",
+      title: "Performance per Watt",
       notes: "TPU delivers <strong>30–80\u00d7</strong> better perf/Watt than CPU, <strong>14–29\u00d7</strong> better than GPU. The hypothetical TPU' with GDDR5 reaches <strong>196\u00d7</strong>. Power = dominant cost in datacenters, so this metric justified the custom ASIC.",
     },
     {
       tab: "performance",
       target: "#dieAreaChart",
       position: "right",
-      title: "9/11 — Die Area: Minimalism as Virtue",
+      title: "Die Area: Minimalism as Virtue",
       notes: "TPU: <strong>67% datapath</strong>, <strong>2% control</strong>. CPUs/GPUs: ~25% control (branch prediction, OoO, caches). The TPU drops all of that — no caches, no speculation. Fits <strong>25\u00d7 more MACs</strong> in <strong>half the die area</strong>.",
     },
     {
       tab: "performance",
       target: "#latencyChart",
       position: "right",
-      title: "10/11 — Latency Constraints",
+      title: "Latency Constraints",
       notes: "Set deadline to 7 ms. TPU retains <strong>80% of peak</strong>. CPU → 42%, GPU → 37%. Tighter deadlines force smaller batches. The TPU's <strong>deterministic execution</strong> handles small batches efficiently — no thread scheduling or cache miss overhead.",
       action: function () {
         document.getElementById("latencySlider").value = 7;
@@ -97,7 +108,7 @@
       tab: "performance",
       target: ".insight",
       position: "top",
-      title: "11/11 — Conclusion",
+      title: "Conclusion",
       notes: "The TPU made the right trade-offs: <strong>domain-specific design</strong>, 8-bit systolic arrays, large on-chip memory, deterministic execution. Order-of-magnitude improvements — rare in computer architecture. Sacrificing generality for targeted specialization yields <strong>massive gains</strong>.",
     },
   ];
@@ -343,7 +354,7 @@
         switchTab(s.tab);
       }
 
-      document.getElementById("tourTitle").textContent = s.title;
+      document.getElementById("tourTitle").textContent = (idx + 1) + "/" + steps.length + " \u2014 " + s.title;
       document.getElementById("tourNotes").innerHTML = s.notes;
       document.getElementById("tourProgressFill").style.width = ((idx + 1) / steps.length * 100) + "%";
 

@@ -430,6 +430,204 @@ body {
 }
 
 /* ============================================================
+   ARCHITECTURE DIAGRAM
+   ============================================================ */
+.arch-diagram {
+  display: grid;
+  position: relative;
+  gap: 6px;
+  grid-template-columns: 80px 90px 160px 100px 180px;
+  grid-template-rows: auto auto auto auto auto auto;
+  grid-template-areas:
+    ".       .       dram    a1      .      "
+    ".       .       ddr     a2      wfifo  "
+    "pcie    a3      host    a4      ubuf   a5  setup  .  mmu"
+    ".       .       .       .       .      a6      .  .  acc"
+    ".       instr   ctrl    .       .       .      .  .  act"
+    ".       .       .       .       .       .      .  .  norm";
+  /* Fallback: let the grid auto-place overflow gracefully */
+  grid-template-columns: 80px 14px 90px 14px 160px 14px 100px 6px 180px;
+  grid-template-areas:
+    ".     .  .     .  dram  .  .      .  .    "
+    ".     .  .     .  ddr   .  .      .  wfifo"
+    "pcie  a3 host  a4 ubuf  a5 setup  .  mmu  "
+    ".     .  .     .  .     .  .      .  acc  "
+    ".     .  instr .  ctrl  .  .      .  act  "
+    ".     .  .     .  .     .  .      .  norm ";
+  align-items: center;
+  justify-items: center;
+  padding: 0.5rem 0;
+  min-height: 360px;
+}
+
+.arch-block {
+  padding: 0.6rem 0.5rem;
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1.35;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  border: 2px solid transparent;
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.arch-block small {
+  font-size: 0.55rem;
+  font-weight: 400;
+  text-transform: none;
+  opacity: 0.75;
+  margin-top: 2px;
+}
+.arch-block:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(42,37,32,0.15);
+}
+.arch-block-active {
+  border-color: var(--accent-burn) !important;
+  box-shadow: 0 0 0 3px rgba(201,74,26,0.25), 0 4px 16px rgba(42,37,32,0.2) !important;
+  transform: translateY(-2px) !important;
+}
+.arch-block-large { min-height: 64px; }
+
+/* Category colors */
+.arch-io      { background: #c8e6c9; border-color: #81c784; color: #2e7d32; }
+.arch-buffer  { background: #bbdefb; border-color: #90caf9; color: #1565c0; }
+.arch-compute { background: #ffe0b2; border-color: #ffcc80; color: #e65100; }
+.arch-ctrl    { background: #ef9a9a; border-color: #ef5350; color: #b71c1c; }
+
+/* Arrows */
+.arch-arrow {
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+.arch-arrow-h { writing-mode: horizontal-tb; }
+.arch-arrow-v { writing-mode: horizontal-tb; }
+
+/* Tooltip */
+.arch-tip {
+  display: none;
+  position: absolute;
+  z-index: 300;
+  width: 380px;
+  max-width: calc(100vw - 24px);
+  background: var(--bg-card);
+  border: 2px solid var(--accent-burn);
+  border-radius: 6px;
+  box-shadow: 4px 4px 0 rgba(201,74,26,0.12), 0 8px 24px rgba(42,37,32,0.16);
+  padding: 0;
+  overflow-y: auto;
+  max-height: 70vh;
+}
+.arch-tip.visible { display: block; }
+
+.arch-tip-name {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #fff;
+  background: var(--accent-burn);
+  padding: 0.5rem 0.7rem;
+  border-radius: 4px 4px 0 0;
+}
+.arch-tip-specs {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--accent-teal);
+  padding: 0.4rem 0.7rem 0;
+  font-weight: 600;
+}
+.arch-tip-desc {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--text);
+  padding: 0.4rem 0.7rem;
+  line-height: 1.5;
+}
+.arch-tip-table {
+  width: calc(100% - 1.4rem);
+  margin: 0.3rem 0.7rem;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+}
+.arch-tip-table th {
+  background: var(--bg-warm);
+  padding: 0.25rem 0.35rem;
+  text-align: left;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-mid);
+  border-bottom: 1px solid var(--border);
+}
+.arch-tip-table td {
+  padding: 0.2rem 0.35rem;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text);
+}
+.arch-tip-label {
+  font-weight: 600;
+  color: var(--text-mid);
+}
+.arch-tip-table tr:last-child td { border-bottom: none; }
+
+.arch-tip-why {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  color: var(--text-mid);
+  padding: 0.4rem 0.7rem 0.6rem;
+  line-height: 1.5;
+  border-top: 1px dashed var(--border);
+  margin-top: 0.3rem;
+}
+.arch-tip-why strong { color: var(--accent-teal); }
+
+/* Legend */
+.arch-legend {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.8rem;
+  justify-content: center;
+}
+.arch-leg-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.arch-leg-sw {
+  width: 14px; height: 14px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+.arch-leg-io   { background: #c8e6c9; }
+.arch-leg-buf  { background: #bbdefb; }
+.arch-leg-comp { background: #ffe0b2; }
+.arch-leg-ctrl { background: #ef9a9a; }
+
+/* ============================================================
    PRESENTATION MODE — Tour button
    ============================================================ */
 .present-btn {
@@ -525,6 +723,28 @@ body {
 
   /* Systolic: stack the two canvases */
   .systolic-layout { grid-template-columns: 1fr; }
+
+  /* Architecture: single-column flow */
+  .arch-diagram {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-height: auto;
+  }
+  .arch-diagram .arch-arrow { display: none; }
+  .arch-block { width: 100%; min-height: 40px; }
+  .arch-tip.visible {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 10px 10px 0 0;
+    border-bottom: none;
+    max-height: 50vh;
+  }
 }
 
 /* -- Very small phones (≤ 400px) -- */
