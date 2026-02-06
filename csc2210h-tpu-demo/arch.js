@@ -276,14 +276,17 @@
 
   // ================================================================
   // SVG Data-Flow & Control Arrows (desktop only)
-  // Draws directional arrows with bandwidth labels between blocks,
-  // matching the reference TPU block diagram from the paper.
+  // Colour-coded to match the TPU block diagram from the paper:
+  //   Green  = Off-Chip I/O    Blue  = Data Buffer
+  //   Amber  = Computation     Red   = Control
   // ================================================================
 
   var NS = "http://www.w3.org/2000/svg";
-  var ARROW_COLOR = "#5c5347";
-  var CTRL_COLOR  = "#c0392b";
-  var LABEL_COLOR = "#5c5347";
+  var C_IO   = "#388e3c";   // green  — off-chip I/O paths
+  var C_BUF  = "#1565c0";   // blue   — data buffer paths
+  var C_COMP = "#e65100";   // amber  — compute / datapath
+  var C_CTRL = "#c62828";   // red    — control signals
+  var C_LBL  = "#4a4340";   // label text
 
   function el(tag, attrs) {
     var e = document.createElementNS(NS, tag);
@@ -294,7 +297,6 @@
   function drawSvgArrows() {
     var old = diagram.querySelector(".arch-svg-arrows");
     if (old) old.remove();
-
     if (window.innerWidth < 600) return;
 
     var dRect = diagram.getBoundingClientRect();
@@ -302,133 +304,85 @@
     if (W < 50 || H < 50) return;
 
     var svg = el("svg", {
-      class: "arch-svg-arrows",
-      width: W, height: H,
+      class: "arch-svg-arrows", width: W, height: H,
       viewBox: "0 0 " + W + " " + H
     });
-    svg.style.position = "absolute";
-    svg.style.top = "0";
-    svg.style.left = "0";
-    svg.style.width = "100%";
-    svg.style.height = "100%";
-    svg.style.overflow = "visible";
+    svg.style.cssText = "position:absolute;top:0;left:0;width:100%;height:100%;overflow:visible;";
 
-    // ---- Arrowhead markers ----
+    // ---- arrowhead markers (one per colour) ----
     var defs = el("defs", {});
-
-    function addMarker(id, color, sz) {
-      var h = sz * 0.75;
-      var m = el("marker", {
-        id: id, markerWidth: sz, markerHeight: h,
-        refX: sz, refY: h / 2, orient: "auto", markerUnits: "userSpaceOnUse"
-      });
+    function mkr(id, color, sz) {
+      var h = sz * 0.7;
+      var m = el("marker", { id: id, markerWidth: sz, markerHeight: h,
+        refX: sz - 1, refY: h / 2, orient: "auto", markerUnits: "userSpaceOnUse" });
       m.appendChild(el("path", {
-        d: "M0,0 L" + sz + "," + (h / 2) + " L0," + h + " Z", fill: color
-      }));
+        d: "M0,0 L" + sz + "," + (h / 2) + " L0," + h + " Z", fill: color }));
       defs.appendChild(m);
     }
-    addMarker("ahD", ARROW_COLOR, 8);
-    addMarker("ahC", CTRL_COLOR, 6);
+    mkr("mIO",   C_IO,   7);
+    mkr("mBuf",  C_BUF,  7);
+    mkr("mComp", C_COMP, 7);
+    mkr("mCtrl", C_CTRL, 5);
     svg.appendChild(defs);
     diagram.insertBefore(svg, diagram.firstChild);
 
-    // ---- helpers ----
+    // ---- drawing helpers ----
     function bp(id) {
       var e = document.getElementById(id);
       if (!e) return null;
       var r = e.getBoundingClientRect();
-      return {
-        cx: r.left + r.width / 2 - dRect.left,
-        cy: r.top + r.height / 2 - dRect.top,
-        t: r.top - dRect.top, b: r.bottom - dRect.top,
-        l: r.left - dRect.left, r: r.right - dRect.left,
-        w: r.width, h: r.height
-      };
+      return { cx: r.left + r.width / 2 - dRect.left, cy: r.top + r.height / 2 - dRect.top,
+               t: r.top - dRect.top, b: r.bottom - dRect.top,
+               l: r.left - dRect.left, r: r.right - dRect.left,
+               w: r.width, h: r.height };
     }
 
-    // single arrow
-    function arrow(x1, y1, x2, y2, opts) {
-      opts = opts || {};
-      var g = el("g", {});
-      var a = { x1: x1, y1: y1, x2: x2, y2: y2,
-        stroke: opts.color || ARROW_COLOR, "stroke-width": opts.sw || 2 };
-      if (!opts.noHead) a["marker-end"] = "url(#" + (opts.mk || "ahD") + ")";
-      g.appendChild(el("line", a));
-      svg.appendChild(g);
-      return g;
+    function ln(x1, y1, x2, y2, c, mk, sw) {
+      svg.appendChild(el("line", { x1: x1, y1: y1, x2: x2, y2: y2,
+        stroke: c, "stroke-width": sw || 2,
+        "marker-end": mk ? "url(#" + mk + ")" : "none" }));
     }
 
-    // label helper
-    function label(x, y, txt, opts) {
-      opts = opts || {};
-      var tx = el("text", {
-        x: x, y: y,
-        "text-anchor": opts.anchor || "middle",
-        fill: opts.color || LABEL_COLOR,
-        "font-size": opts.size || "9",
-        "font-family": "'IBM Plex Mono', monospace",
-        "font-weight": "600"
-      });
-      tx.textContent = txt;
-      svg.appendChild(tx);
+    function lbl(x, y, txt, a) {
+      var t = el("text", { x: x, y: y, "text-anchor": a || "middle",
+        fill: C_LBL, "font-size": "8.5",
+        "font-family": "'IBM Plex Mono', monospace", "font-weight": "600" });
+      t.textContent = txt;
+      svg.appendChild(t);
     }
 
-    // bidirectional straight arrow (two offset parallel arrows)
-    function bidir(x1, y1, x2, y2, opts) {
-      opts = opts || {};
+    function pline(pts, c, mk, sw) {
+      svg.appendChild(el("polyline", {
+        points: pts.map(function (p) { return p[0] + "," + p[1]; }).join(" "),
+        fill: "none", stroke: c, "stroke-width": sw || 2,
+        "marker-end": mk ? "url(#" + mk + ")" : "none" }));
+    }
+
+    // bidirectional — two parallel offset arrows
+    function bidir(x1, y1, x2, y2, c, mk, lblTxt) {
       var dx = x2 - x1, dy = y2 - y1;
-      var len = Math.sqrt(dx * dx + dy * dy);
-      if (len === 0) return;
-      var off = opts.off || 3;
-      var px = -dy / len * off, py = dx / len * off;
-      arrow(x1 + px, y1 + py, x2 + px, y2 + py, opts);
-      arrow(x2 - px, y2 - py, x1 - px, y1 - py, opts);
-      // label centered
-      if (opts.label) {
+      var len = Math.sqrt(dx * dx + dy * dy); if (!len) return;
+      var off = 3, px = -dy / len * off, py = dx / len * off;
+      ln(x1 + px, y1 + py, x2 + px, y2 + py, c, mk);
+      ln(x2 - px, y2 - py, x1 - px, y1 - py, c, mk);
+      if (lblTxt) {
         var mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
         var isV = Math.abs(dy) > Math.abs(dx);
-        label(isV ? mx + off + 7 : mx, isV ? my : my - off - 4, opts.label);
+        lbl(isV ? mx + off + 7 : mx, isV ? my : my - off - 5, lblTxt);
       }
     }
 
-    // polyline with end-arrow
-    function poly(pts, opts) {
-      opts = opts || {};
-      var g = el("g", {});
-      g.appendChild(el("polyline", {
-        points: pts.map(function (p) { return p[0] + "," + p[1]; }).join(" "),
-        fill: "none",
-        stroke: opts.color || ARROW_COLOR,
-        "stroke-width": opts.sw || 2,
-        "marker-end": "url(#" + (opts.mk || "ahD") + ")"
-      }));
-      svg.appendChild(g);
-      if (opts.label) {
-        var lx = opts.lx != null ? opts.lx : (pts[0][0] + pts[1][0]) / 2;
-        var ly = opts.ly != null ? opts.ly : (pts[0][1] + pts[1][1]) / 2 - 5;
-        label(lx, ly, opts.label, { anchor: opts.la });
-      }
-    }
-
-    // Draw a small red control box in SVG
-    function ctrlBox(cx, cy, w, h) {
-      w = w || 38; h = h || 16;
-      var g = el("g", {});
-      g.appendChild(el("rect", {
-        x: cx - w / 2, y: cy - h / 2, width: w, height: h,
-        rx: 3, ry: 3, fill: CTRL_COLOR, opacity: "0.9"
-      }));
-      var t = el("text", {
-        x: cx, y: cy + 3.5,
-        "text-anchor": "middle", fill: "#fff",
-        "font-size": "7", "font-family": "'IBM Plex Mono', monospace",
-        "font-weight": "700"
-      });
+    // small red control box drawn in SVG
+    function ctrlBox(cx, cy, bw, bh) {
+      bw = bw || 32; bh = bh || 14;
+      svg.appendChild(el("rect", { x: cx - bw / 2, y: cy - bh / 2,
+        width: bw, height: bh, rx: 2, ry: 2, fill: C_CTRL, opacity: "0.92" }));
+      var t = el("text", { x: cx, y: cy + 3, "text-anchor": "middle", fill: "#fff",
+        "font-size": "6.5", "font-family": "'IBM Plex Mono', monospace", "font-weight": "700" });
       t.textContent = "CTRL";
-      g.appendChild(t);
-      svg.appendChild(g);
-      return { cx: cx, cy: cy, t: cy - h / 2, b: cy + h / 2,
-               l: cx - w / 2, r: cx + w / 2 };
+      svg.appendChild(t);
+      return { cx: cx, cy: cy, t: cy - bh / 2, b: cy + bh / 2,
+               l: cx - bw / 2, r: cx + bw / 2 };
     }
 
     // ---- block positions ----
@@ -448,148 +402,174 @@
 
     if (!dram || !mmu || !norm || !ubuf) return;
 
-    var gap = 5;
+    var g = 3; // gap from block edge to arrow endpoint
 
-    // =========================================================
-    //  DATA-FLOW ARROWS
-    // =========================================================
+    // =============================================================
+    //  DATA-FLOW ARROWS  (colour-coded by block category)
+    // =============================================================
 
-    // 1. DDR3 DRAM → DDR3-2133 (30 GiB/s, one-way DOWN)
-    arrow(dram.cx, dram.b + gap, ddr.cx, ddr.t - gap);
-    label(dram.cx + 8, (dram.b + ddr.t) / 2 + 2, "30 GiB/s", { anchor: "start" });
+    // 1. DDR3 DRAM → DDR3-2133  (30 GiB/s, GREEN, one-way DOWN)
+    ln(dram.cx, dram.b + g, ddr.cx, ddr.t - g, C_IO, "mIO");
+    lbl(dram.r + 6, (dram.b + ddr.t) / 2 + 3, "30 GiB/s", "start");
 
-    // 2. DDR3-2133 → Weight FIFO (30 GiB/s, one-way RIGHT)
-    arrow(ddr.r + gap, ddr.cy, wfifo.l - gap, wfifo.cy);
-    label((ddr.r + wfifo.l) / 2, ddr.cy - 6, "30 GiB/s");
+    // 2. DDR3-2133 → Weight FIFO  (30 GiB/s, GREEN, one-way RIGHT)
+    ln(ddr.r + g, ddr.cy, wfifo.l - g, wfifo.cy, C_IO, "mIO");
+    lbl((ddr.r + wfifo.l) / 2, ddr.cy - 8, "30 GiB/s");
 
-    // 3. PCIe ↔ external (14 GiB/s, bidirectional LEFT outward)
+    // 3. PCIe ↔ external  (14 GiB/s, GREEN, bidirectional LEFT)
     if (pcie) {
-      var extX = pcie.l - 40;
-      bidir(extX, pcie.cy, pcie.l - gap, pcie.cy, { label: "14 GiB/s" });
+      var extX = Math.max(4, pcie.l - 38);
+      bidir(extX, pcie.cy, pcie.l - g, pcie.cy, C_IO, "mIO", "14 GiB/s");
     }
 
-    // 4. PCIe ↔ Host Interface (14 GiB/s, bidirectional)
+    // 4. PCIe ↔ Host Interface  (14 GiB/s, GREEN, bidirectional)
     if (pcie && host) {
-      bidir(pcie.r + gap, pcie.cy, host.l - gap, host.cy, { label: "14 GiB/s" });
+      bidir(pcie.r + g, pcie.cy, host.l - g, pcie.cy, C_IO, "mIO", "14 GiB/s");
     }
 
-    // 5. Host ↔ DDR3-2133 (14 GiB/s, bidirectional, L-shaped)
-    //    Route: from host top → up to ddr cy → right to ddr left
+    // 5. Host ↔ DDR3-2133  (14 GiB/s, BLUE, bidirectional L-shaped)
     if (host && ddr) {
-      var hx1 = host.cx - 3, hx2 = host.cx + 3;
-      // forward (host → ddr): go up then right
-      poly([
-        [hx1, host.t - gap],
-        [hx1, ddr.cy - 3],
-        [ddr.l - gap, ddr.cy - 3]
-      ], {});
-      // backward (ddr → host): go left then down
-      poly([
-        [ddr.l - gap, ddr.cy + 3],
-        [hx2, ddr.cy + 3],
-        [hx2, host.t - gap]
-      ], {});
-      label(hx1 - 8, (host.t + ddr.cy) / 2, "14 GiB/s", { anchor: "end" });
+      var hx = host.cx;
+      // forward: host top → up → right → ddr left
+      pline([
+        [hx - 4, host.t - g],
+        [hx - 4, ddr.cy - 4],
+        [ddr.l - g, ddr.cy - 4]
+      ], C_BUF, "mBuf");
+      // backward: ddr left → left → down → host top
+      pline([
+        [ddr.l - g, ddr.cy + 4],
+        [hx + 4, ddr.cy + 4],
+        [hx + 4, host.t - g]
+      ], C_BUF, "mBuf");
+      lbl(hx - 10, (host.t + ddr.b) / 2, "14 GiB/s", "end");
     }
 
-    // 6. Host ↔ Unified Buffer (10 GiB/s, bidirectional)
+    // 6. Host ↔ Unified Buffer  (10 GiB/s, BLUE, bidirectional)
     if (host && ubuf) {
-      bidir(host.r + gap, host.cy, ubuf.l - gap, ubuf.cy, { label: "10 GiB/s" });
+      bidir(host.r + g, ubuf.cy, ubuf.l - g, ubuf.cy, C_BUF, "mBuf", "10 GiB/s");
     }
 
-    // 7. Unified Buffer → Systolic Data Setup (167 GiB/s, one-way RIGHT)
-    arrow(ubuf.r + gap, ubuf.cy, setup.l - gap, setup.cy);
-    label((ubuf.r + setup.l) / 2, ubuf.cy - 6, "167 GiB/s");
+    // 7. Unified Buffer → Systolic Data Setup  (167 GiB/s, BLUE, one-way RIGHT)
+    ln(ubuf.r + g, ubuf.cy, setup.l - g, setup.cy, C_BUF, "mBuf");
+    lbl((ubuf.r + setup.l) / 2, ubuf.cy - 8, "167 GiB/s");
 
-    // 8. Systolic Data Setup → MMU (one-way RIGHT)
-    arrow(setup.r + gap, setup.cy, mmu.l - gap, mmu.cy);
+    // 8. Systolic Data Setup → MMU  (AMBER, one-way RIGHT)
+    ln(setup.r + g, setup.cy, mmu.l - g, mmu.cy, C_COMP, "mComp");
 
-    // 9. Weight FIFO → MMU (30 GiB/s, one-way DOWN)
-    arrow(wfifo.cx, wfifo.b + gap, mmu.cx, mmu.t - gap);
-    label(wfifo.cx + 8, (wfifo.b + mmu.t) / 2 + 2, "30 GiB/s", { anchor: "start" });
+    // 9. Weight FIFO → MMU  (30 GiB/s, AMBER, one-way DOWN)
+    ln(wfifo.cx, wfifo.b + g, mmu.cx, mmu.t - g, C_COMP, "mComp");
+    lbl(wfifo.r + 6, (wfifo.b + mmu.t) / 2 + 3, "30 GiB/s", "start");
 
-    // 10–12. MMU → Acc → Act → Norm (one-way DOWN chain)
-    arrow(mmu.cx, mmu.b + gap, acc.cx, acc.t - gap);
-    arrow(acc.cx, acc.b + gap, act.cx, act.t - gap);
-    arrow(act.cx, act.b + gap, norm.cx, norm.t - gap);
+    // 10–12. MMU → Acc → Act → Norm  (AMBER, one-way DOWN chain)
+    ln(mmu.cx, mmu.b + g, acc.cx, acc.t - g, C_COMP, "mComp");
+    ln(acc.cx, acc.b + g, act.cx, act.t - g, C_COMP, "mComp");
+    ln(act.cx, act.b + g, norm.cx, norm.t - g, C_COMP, "mComp");
 
-    // 13. Normalize/Pool → Unified Buffer (167 GiB/s, L-shaped return LEFT then UP)
+    // 13. Normalize/Pool → Unified Buffer  (167 GiB/s, BLUE, L-shaped return)
     var retX = ubuf.cx;
-    poly([
-      [norm.l - gap, norm.cy],
+    pline([
+      [norm.l - g, norm.cy],
       [retX, norm.cy],
-      [retX, ubuf.b + gap]
-    ], {
-      label: "167 GiB/s",
-      lx: (norm.l - gap + retX) / 2,
-      ly: norm.cy - 7
-    });
+      [retX, ubuf.b + g]
+    ], C_BUF, "mBuf");
+    lbl((norm.l + retX) / 2, norm.cy - 8, "167 GiB/s");
 
-    // =========================================================
-    //  CONTROL-FLOW ARROWS  (thin red)
-    // =========================================================
-    var cOpts = { color: CTRL_COLOR, sw: 1.5, mk: "ahC" };
+    // =============================================================
+    //  CONTROL-FLOW ARROWS  (thin RED, routed around data paths)
+    // =============================================================
+    var csw = 1.3;
 
-    // Place SVG control boxes at strategic locations matching reference diagram
-    // C1: upper-left — between Host top and DDR row (controls memory interface)
-    var c1x = (host.r + ubuf.l) / 2;
-    var c1y = (ddr.b + host.t) / 2 + 2;
-    var C1 = ctrlBox(c1x, c1y);
+    // --- SVG control boxes positioned in gaps between rows ---
+    // C1: upper-left — in the host / ubuf gap, between rows 2–3
+    var gapHL = (host.r + ubuf.l) / 2;
+    var rowGap23 = (ddr.b + ubuf.t) / 2;
+    var C1 = ctrlBox(gapHL, rowGap23);
 
-    // C2: upper-right — right of ubuf area (controls data setup & MMU feed)
-    var c2x = (setup.l + setup.r) / 2;
-    var c2y = c1y;
-    var C2 = ctrlBox(c2x, c2y);
+    // C2: upper-right — in the ubuf / setup gap, between rows 2–3
+    var gapRS = (ubuf.r + setup.l) / 2 + 2;
+    var C2 = ctrlBox(gapRS, rowGap23);
 
-    // C3: lower-right — near the compute pipeline (controls acc/act/norm)
-    var c3x = mmu.l - 25;
+    // C3: right side — left of acc/act gap (controls compute pipeline)
+    var c3x = acc.l - 22;
     var c3y = (acc.b + act.t) / 2;
     var C3 = ctrlBox(c3x, c3y);
 
-    // -- Instr → Ctrl (HTML blocks, upward since instr is now below ctrl) --
+    // C4: lower-left — between ctrl column & host column (return to host)
+    var c4x = (host.r + ctrl.l) / 2;
+    var c4y = (host.b + ctrl.cy) / 2;
+    var C4 = ctrlBox(c4x, c4y);
+
+    // -- Instr → Ctrl (upward, Instr is directly below Ctrl) --
     if (instr && ctrl) {
-      arrow(instr.cx, instr.t - gap, ctrl.cx, ctrl.b + gap, cOpts);
+      ln(instr.cx, instr.t - g, ctrl.cx, ctrl.b + g, C_CTRL, "mCtrl", csw);
     }
 
-    // -- Ctrl → C1 (upward-left from main ctrl to upper-left ctrl) --
+    // -- Ctrl → C1  (route through empty row-4 gap, avoiding data arrows) --
     if (ctrl) {
-      poly([
-        [ctrl.cx, ctrl.t - gap],
-        [ctrl.cx, C1.cy],
-        [C1.r + gap, C1.cy]
-      ], cOpts);
+      var busY1 = ubuf.b + (ctrl.t - ubuf.b) * 0.3;
+      pline([
+        [ctrl.cx - 4, ctrl.t - g],
+        [ctrl.cx - 4, busY1],
+        [C1.cx, busY1],
+        [C1.cx, C1.b + g]
+      ], C_CTRL, "mCtrl", csw);
     }
 
-    // -- C1 → C2 (rightward, upper control bus) --
-    arrow(C1.r + gap, C1.cy, C2.l - gap, C2.cy, cOpts);
+    // -- Ctrl → C2  (separate path, slightly different Y to avoid overlap) --
+    if (ctrl) {
+      var busY2 = ubuf.b + (ctrl.t - ubuf.b) * 0.5;
+      pline([
+        [ctrl.cx + 4, ctrl.t - g],
+        [ctrl.cx + 4, busY2],
+        [C2.cx, busY2],
+        [C2.cx, C2.b + g]
+      ], C_CTRL, "mCtrl", csw);
+    }
 
-    // -- C1 → Host Interface (downward to host top, control signal to host) --
+    // -- C1 → C2  (horizontal control bus above main row) --
+    ln(C1.r + g, C1.cy, C2.l - g, C2.cy, C_CTRL, "mCtrl", csw);
+
+    // -- C1 → Host  (downward from C1 to host top) --
     if (host) {
-      arrow(C1.cx, C1.b + gap, host.cx, host.t - gap, cOpts);
+      ln(C1.cx, C1.b + g, host.r - 8, host.t - g, C_CTRL, "mCtrl", csw);
     }
 
-    // -- C2 → C3 (down along the right side, control to compute pipeline) --
-    poly([
-      [C2.cx, C2.b + gap],
-      [C2.cx, setup.t - 4],
-      [C3.cx, setup.t - 4],
-      [C3.cx, C3.t - gap]
-    ], cOpts);
+    // -- C2 → C3  (right then down to reach compute pipeline) --
+    pline([
+      [C2.r + g, C2.cy],
+      [C3.cx, C2.cy],
+      [C3.cx, C3.t - g]
+    ], C_CTRL, "mCtrl", csw);
 
-    // -- C3 → back toward main Ctrl (leftward along bottom, completing the ring) --
+    // -- C3 → back toward Ctrl  (left-and-down, completing the ring) --
     if (ctrl) {
-      poly([
-        [C3.l - gap, C3.cy],
-        [ctrl.r + gap + 8, C3.cy],
-        [ctrl.r + gap + 8, ctrl.cy],
-        [ctrl.r + gap, ctrl.cy]
-      ], cOpts);
+      pline([
+        [C3.l - g, C3.cy],
+        [ctrl.r + 12, C3.cy],
+        [ctrl.r + 12, ctrl.cy],
+        [ctrl.r + g, ctrl.cy]
+      ], C_CTRL, "mCtrl", csw);
+    }
+
+    // -- Ctrl → C4  (left from ctrl to C4, connecting back to host) --
+    if (ctrl) {
+      pline([
+        [ctrl.l - g, ctrl.cy + 5],
+        [C4.cx, ctrl.cy + 5],
+        [C4.cx, C4.b + g]
+      ], C_CTRL, "mCtrl", csw);
+    }
+
+    // -- C4 → Host  (upward to host bottom) --
+    if (host) {
+      ln(C4.cx, C4.t - g, host.cx, host.b + g, C_CTRL, "mCtrl", csw);
     }
   }
 
   // Draw arrows on load and resize
-  setTimeout(drawSvgArrows, 120);
+  setTimeout(drawSvgArrows, 150);
   window.addEventListener("resize", function () {
-    setTimeout(drawSvgArrows, 60);
+    setTimeout(drawSvgArrows, 80);
   });
 })();

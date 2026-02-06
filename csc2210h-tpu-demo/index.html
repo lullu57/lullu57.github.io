@@ -44,6 +44,7 @@
       </div>
 
       <div class="card arch-diagram-card" style="padding:1.5rem; overflow:visible;">
+        <p class="arch-scale-note">Diagram not to scale &mdash; layout based on Google&rsquo;s TPU v1 block diagram</p>
         <div class="arch-diagram" id="archDiagram">
 
           <!-- Row 1: DDR3 DRAM -->
@@ -59,7 +60,7 @@
             Weight FIFO<br><small>(Weight Fetcher)</small>
           </div>
 
-          <!-- Row 3: main data path -->
+          <!-- Rows 3–5: main data path (PCIe & Host span 3 rows) -->
           <div class="arch-block arch-io" id="arch-pcie" style="grid-area:pcie;">
             PCIe Gen3<br>&times;16
           </div>
@@ -77,7 +78,7 @@
           </div>
 
           <!-- Row 4 -->
-          <div class="arch-block arch-compute" id="arch-acc" style="grid-area:acc;">
+          <div class="arch-block arch-buffer" id="arch-acc" style="grid-area:acc;">
             Accumulators<br><small>4 MiB</small>
           </div>
 

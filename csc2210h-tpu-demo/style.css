@@ -445,33 +445,49 @@ body {
   z-index: 2;
 }
 
+/* "Not to scale" note above diagram */
+.arch-scale-note {
+  text-align: center;
+  font-size: 0.6rem;
+  color: #a09585;
+  margin: 0 0 0.5rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+}
+
 .arch-diagram {
   display: grid;
   position: relative;
-  gap: 6px;
-  grid-template-columns: 80px 90px 160px 100px 180px;
+  gap: 18px 8px;
+  grid-template-columns: 80px 24px 100px 28px 170px 22px 108px 16px 185px;
   grid-template-rows: auto auto auto auto auto auto;
   grid-template-areas:
-    ".       .       dram    a1      .      "
-    ".       .       ddr     a2      wfifo  "
-    "pcie    a3      host    a4      ubuf   a5  setup  .  mmu"
-    ".       .       .       .       .      a6      .  .  acc"
-    ".       .       .       .       ctrl    .      .  .  act"
-    ".       .       .       .       instr   .      .  .  norm";
-  /* Fallback: let the grid auto-place overflow gracefully */
-  grid-template-columns: 80px 14px 90px 14px 160px 14px 100px 6px 180px;
-  grid-template-areas:
-    ".     .  .     .  dram  .  .      .  .    "
-    ".     .  .     .  ddr   .  .      .  wfifo"
-    "pcie  a3 host  a4 ubuf  a5 setup  .  mmu  "
-    ".     .  .     .  .     .  .      .  acc  "
-    ".     .  .     .  ctrl  .  .      .  act  "
-    ".     .  .     .  instr .  .      .  norm ";
+    ".     .  .     .  dram   .  .      .  .    "
+    ".     .  .     .  ddr    .  .      .  wfifo"
+    "pcie  .  host  .  ubuf   .  setup  .  mmu  "
+    "pcie  .  host  .  .      .  .      .  acc  "
+    "pcie  .  host  .  ctrl   .  .      .  act  "
+    ".     .  .     .  instr  .  .      .  norm ";
   align-items: center;
   justify-items: center;
   justify-content: center;
-  padding: 0.5rem 0;
-  min-height: 360px;
+  padding: 1rem 0;
+  min-height: 480px;
+}
+
+/* PCIe & Host Interface span 3 rows — stretch to fill like original tall bars */
+#arch-pcie,
+#arch-host {
+  align-self: stretch;
+  min-height: unset;
+}
+
+/* Instr block — smaller like original */
+#arch-instr {
+  padding: 0.3rem 0.5rem;
+  font-size: 0.6rem;
+  min-height: 32px;
 }
 
 .arch-block {
@@ -518,20 +534,8 @@ body {
 .arch-compute { background: #ffe0b2; border-color: #ffcc80; color: #e65100; }
 .arch-ctrl    { background: #ef9a9a; border-color: #ef5350; color: #b71c1c; }
 
-/* Arrows — old text arrows hidden on desktop, replaced by SVG */
-.arch-arrow {
-  font-family: var(--font-mono);
-  font-size: 0;
-  color: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-}
-.arch-arrow-h { writing-mode: horizontal-tb; }
-.arch-arrow-v { writing-mode: horizontal-tb; }
+/* Old text arrows — fully hidden, replaced by SVG overlay */
+.arch-arrow { display: none !important; }
 
 /* SVG arrow overlay */
 .arch-svg-arrows { pointer-events: none; }
