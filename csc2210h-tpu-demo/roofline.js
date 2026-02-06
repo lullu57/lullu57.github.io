@@ -46,7 +46,7 @@
 
   // ---- Chip data (light retro-hardware palette) ----
   const chips = [
-    { key: "cpu", name: "Haswell CPU", peakTOPS: 2.6,  memBw: 51,  color: "#607d8b", togId: "togCPU" },
+    { key: "cpu", name: "Haswell CPU", peakTOPS: 1.3,  memBw: 51,  color: "#607d8b", togId: "togCPU" },
     { key: "gpu", name: "K80 GPU",     peakTOPS: 2.8,  memBw: 160, color: "#2e7d32", togId: "togGPU" },
     { key: "tpu", name: "TPU",         peakTOPS: 92,   memBw: 34,  color: "#c94a1a", togId: "togTPU" },
   ];
@@ -64,20 +64,20 @@
 
   // ---- Build roofline path for a chip ----
   function rooflinePath(peakTOPS, memBw, xS, yS) {
-    // Roofline: min(peak, memBw * opsPerByte)
+    // X-axis is "MAC Ops / weight byte" (paper Figures 5-7).
+    // 1 MAC = 2 Ops (multiply + accumulate), so:
+    //   Ridge point (MACs/Byte) = Peak_Ops / (2 * memBw)
+    //   Achievable TOPS = min(Peak, 2 * memBw * X / 1e3)
+    // memBw in GB/s, peakTOPS in Tera-ops/s, X in MACs/byte.
     const xMin = xS.domain()[0];
     const xMax = xS.domain()[1];
-    const ridge = peakTOPS / memBw * 1e3; // ops/byte at knee  (TOPS / (GB/s) = 1e3 ops/byte)
-    // Actually: TOPS = peakTOPS when opsPerByte >= ridge
-    //           TOPS = memBw * opsPerByte / 1e3 when opsPerByte < ridge
-    // But memBw is in GB/s and TOPS is Tera-ops/s, opsPerByte is ops/byte
-    // TOPS_achievable = memBw_GB/s * opsPerByte * 1e9 / 1e12 = memBw * opsPerByte / 1e3
     const points = [];
     const nPts = 200;
     for (let i = 0; i <= nPts; i++) {
       const logX = Math.log10(xMin) + (Math.log10(xMax) - Math.log10(xMin)) * i / nPts;
       const x = Math.pow(10, logX);
-      const y = Math.min(peakTOPS, memBw * x / 1e3);
+      // 2 * memBw * x converts MACs/byte → achievable TOPS via bandwidth
+      const y = Math.min(peakTOPS, 2 * memBw * x / 1e3);
       points.push([xS(x), yS(Math.max(y, yS.domain()[0]))]);
     }
     return d3.line()(points);
@@ -178,8 +178,8 @@
         .attr("stroke-dasharray", chip.key === "tpu" && tpuMemBw !== 34 ? "6,3" : "none")
         .attr("opacity", 0.85);
 
-      // Ridge point annotation
-      const ridge = chip.peakTOPS / chip.memBw * 1e3;
+      // Ridge point annotation (MACs/byte = Peak_Ops / (2 * memBw) * 1e3)
+      const ridge = chip.peakTOPS / (2 * chip.memBw) * 1e3;
       if (ridge >= xScale.domain()[0] && ridge <= xScale.domain()[1]) {
         ridgeGroup.append("circle")
           .attr("cx", xScale(ridge))
@@ -227,7 +227,7 @@
           // If memory BW changed, scale the memory-bound apps
           const origMemBw = 34;
           const origTOPS = app.tpu;
-          const ridgeOrig = 92 / origMemBw * 1e3; // ~2706
+          const ridgeOrig = 92 / (2 * origMemBw) * 1e3; // ~1353 MACs/byte
           if (app.opsPerByte < ridgeOrig) {
             // Memory bound: performance scales with memory BW
             measuredTOPS = Math.min(92, origTOPS * (tpuMemBw / origMemBw));
@@ -322,7 +322,7 @@
 
     // Memory-bound / Compute-bound region labels
     if (document.getElementById("togTPU").checked) {
-      const tpuRidge = chips[2].peakTOPS / chips[2].memBw * 1e3;
+      const tpuRidge = chips[2].peakTOPS / (2 * chips[2].memBw) * 1e3;
       if (tpuRidge > xScale.domain()[0] && tpuRidge < xScale.domain()[1]) {
         labelsGroup.append("text")
           .attr("x", xScale(Math.sqrt(xScale.domain()[0] * tpuRidge)))

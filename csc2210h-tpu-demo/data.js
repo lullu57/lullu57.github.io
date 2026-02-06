@@ -29,7 +29,7 @@ const DATA = {
       nm: 22,
       mhz: 2300,
       tdpW: 145,
-      peakTOPS: 2.6,     // 8-bit equivalent (paper uses FP TOPS 1.3)
+      peakTOPS: 1.3,     // FP32 peak — paper Section 8: all CPU results presented in floating point
       peakFPTOPS: 1.3,
       memBwGBs: 51,
       onChipMiB: 51,
@@ -136,11 +136,11 @@ const DATA = {
       { label: "Matrix Multiply Unit", pct: 24, color: "#c94a1a" },
       { label: "Unified Buffer (24 MiB)", pct: 29, color: "#1565c0" },
       { label: "Accumulators (4 MiB)", pct: 6, color: "#2e7d32" },
-      { label: "Activation / Pool", pct: 4, color: "#7b1fa2" },
+      { label: "Activation / Pool", pct: 6, color: "#7b1fa2" },
       { label: "Weight FIFO + Mem", pct: 4, color: "#c62828" },
       { label: "I/O (PCIe, etc.)", pct: 10, color: "#00838f" },
       { label: "Control", pct: 2, color: "#e65100" },
-      { label: "Other datapath", pct: 21, color: "#607d8b" },
+      { label: "Other datapath", pct: 19, color: "#607d8b" },
     ],
     cpuGpu: [
       { label: "Compute (ALUs / SMs)", pct: 30, color: "#2e7d32" },
@@ -166,8 +166,8 @@ const DATA = {
   // Roofline ridge points (ops per byte at knee)
   // ----------------------------------------------------------
   ridgePoints: {
-    cpu: 51,    // peakTOPS / memBw ≈ 2600/51 ≈ 51 — paper says ~13 MAC ops/byte
-    gpu: 18,    // 2800/160 ≈ 17.5
-    tpu: 1350,  // 92000/34 ≈ 2706 — paper says 1350 (MAC pairs count)
+    cpu: 13,    // 1.3 TOPS / (2 * 51 GB/s) * 1e3 ≈ 12.7 MACs/byte — paper Fig 6
+    gpu: 9,     // 2.8 TOPS / (2 * 160 GB/s) * 1e3 ≈ 8.75 MACs/byte
+    tpu: 1353,  // 92 TOPS / (2 * 34 GB/s) * 1e3 ≈ 1353 MACs/byte — paper Fig 5 says 1350
   },
 };

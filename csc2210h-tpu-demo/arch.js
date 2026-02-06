@@ -94,7 +94,7 @@
         ["", "CPU (Haswell)", "GPU (K80)", "TPU"],
         ["Parallel MACs", "18 (AVX2)", "2,496 (CUDA cores)", "65,536"],
         ["Precision", "32-bit float", "32-bit float", "8-bit integer"],
-        ["Peak perf", "2.6 TOPS", "2.8 TOPS", "92 TOPS"],
+        ["Peak perf", "1.3 TOPS (FP)", "2.8 TOPS", "92 TOPS"],
         ["Die area %", "~24% (ALU+FPU)", "~50% (SM cores)", "67% (datapath)"]
       ],
       why: "25\u00d7 more MACs than the GPU, 100\u00d7 more than the CPU. The key insight: 8-bit integer multiply is 6\u00d7 cheaper in silicon than 32-bit float, and neural network inference does not need high precision. This is why domain-specific design wins."
