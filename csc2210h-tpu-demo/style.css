@@ -456,8 +456,8 @@ body {
     ".       .       ddr     a2      wfifo  "
     "pcie    a3      host    a4      ubuf   a5  setup  .  mmu"
     ".       .       .       .       .      a6      .  .  acc"
-    ".       instr   ctrl    .       .       .      .  .  act"
-    ".       .       .       .       .       .      .  .  norm";
+    ".       .       .       .       ctrl    .      .  .  act"
+    ".       .       .       .       instr   .      .  .  norm";
   /* Fallback: let the grid auto-place overflow gracefully */
   grid-template-columns: 80px 14px 90px 14px 160px 14px 100px 6px 180px;
   grid-template-areas:
@@ -465,8 +465,8 @@ body {
     ".     .  .     .  ddr   .  .      .  wfifo"
     "pcie  a3 host  a4 ubuf  a5 setup  .  mmu  "
     ".     .  .     .  .     .  .      .  acc  "
-    ".     .  instr .  ctrl  .  .      .  act  "
-    ".     .  .     .  .     .  .      .  norm ";
+    ".     .  .     .  ctrl  .  .      .  act  "
+    ".     .  .     .  instr .  .      .  norm ";
   align-items: center;
   justify-items: center;
   justify-content: center;
