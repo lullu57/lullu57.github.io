@@ -1,0 +1,464 @@
+/* ============================================================
+   TPU Interactive Demo — Retro-Futurist Hardware Aesthetic
+   Light theme · IBM Plex typography · circuit-trace motifs
+   ============================================================ */
+
+/* ---- Google Fonts loaded in HTML ---- */
+
+:root {
+  /* --- Palette --- */
+  --bg:           #f4efe6;
+  --bg-warm:      #ece5d8;
+  --bg-card:      #fffdf8;
+  --bg-card-alt:  #f9f5ed;
+  --border:       #c8bfad;
+  --border-light: #ddd6c8;
+  --text:         #2a2520;
+  --text-mid:     #5c5347;
+  --text-muted:   #8a7f72;
+  --accent-burn:  #c94a1a;      /* burnt orange — primary */
+  --accent-teal:  #1a7a6d;      /* oscilloscope teal */
+  --accent-navy:  #1d2b45;      /* PCB trace blue */
+  --accent-gold:  #b8860b;      /* datasheet gold */
+  --accent-red:   #c94a1a;
+  --chip-cpu:     #607d8b;
+  --chip-gpu:     #2e7d32;
+  --chip-tpu:     #c94a1a;
+  --chip-tpup:    #e67e22;
+
+  /* --- Typography --- */
+  --font-mono:    'IBM Plex Mono', 'Courier New', monospace;
+  --font-sans:    'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+
+  /* --- Shape --- */
+  --radius:       4px;
+  --transition:   0.2s ease;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 15px; -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+  /* Subtle grid-paper texture */
+  background-image:
+    linear-gradient(rgba(200,191,173,0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,191,173,0.18) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ---- Header ---- */
+.header {
+  padding: 1.4rem 2rem 1rem;
+  border-bottom: 2px solid var(--accent-burn);
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+  background: var(--bg-card);
+  position: relative;
+}
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0; right: 0;
+  height: 2px;
+  background: var(--border-light);
+}
+.header h1 {
+  font-family: var(--font-mono);
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+.header h1 span {
+  color: var(--accent-burn);
+  border: 2px solid var(--accent-burn);
+  padding: 0.1em 0.35em;
+  margin-right: 0.25em;
+  font-size: 0.95em;
+}
+.header .subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* ---- Tab Bar ---- */
+.tabs {
+  display: flex;
+  gap: 0;
+  padding: 0 2rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-card);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.tab-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.7rem 1.3rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color var(--transition), border-color var(--transition);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active {
+  color: var(--accent-burn);
+  border-bottom-color: var(--accent-burn);
+  font-weight: 700;
+}
+
+/* ---- Panel Container ---- */
+.panel-container {
+  padding: 1.5rem 2rem 3rem;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+.panel { display: none; }
+.panel.active { display: block; animation: panelIn 0.35s ease; }
+
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Panel Header ---- */
+.panel-header {
+  margin-bottom: 1.2rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px dashed var(--border);
+}
+.panel-header h2 {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent-navy);
+  margin-bottom: 0.3rem;
+}
+.panel-header p {
+  font-size: 0.82rem;
+  color: var(--text-mid);
+  max-width: 80ch;
+  line-height: 1.55;
+}
+.panel-header p strong {
+  color: var(--accent-burn);
+  font-weight: 600;
+}
+
+/* ---- Cards ---- */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  position: relative;
+  box-shadow: 2px 2px 0 var(--border-light);
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--accent-burn);
+  border-radius: var(--radius) 0 0 var(--radius);
+  opacity: 0.6;
+}
+.card-title {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 0.8rem;
+  padding-left: 0.6rem;
+  border-left: 2px solid var(--accent-teal);
+}
+
+/* ---- Controls row ---- */
+.controls {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.controls button {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+  box-shadow: 1px 1px 0 var(--border-light);
+}
+.controls button:hover {
+  background: var(--bg-warm);
+  box-shadow: 2px 2px 0 var(--border);
+}
+.controls button:active {
+  box-shadow: none;
+  transform: translate(1px, 1px);
+}
+.controls button.primary {
+  background: var(--accent-burn);
+  border-color: var(--accent-burn);
+  color: #fff;
+  box-shadow: 2px 2px 0 rgba(201,74,26,0.3);
+}
+.controls button.primary:hover {
+  background: #b5411a;
+}
+.controls label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.controls input[type="range"] {
+  width: 120px;
+  accent-color: var(--accent-burn);
+}
+
+/* ---- Systolic Panel Layout ---- */
+.systolic-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.systolic-layout .card { display: flex; flex-direction: column; }
+.systolic-layout canvas {
+  width: 100%;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-light);
+}
+
+/* ---- Stat badges ---- */
+.stat-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 0.8rem;
+}
+.stat-badge {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius);
+  background: var(--bg-warm);
+  border: 1px solid var(--border-light);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-mid);
+}
+.stat-badge .val {
+  color: var(--accent-burn);
+  font-weight: 700;
+}
+
+/* ---- Cycle counter ---- */
+.cycle-display {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent-teal);
+  margin-left: auto;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ---- Roofline Panel ---- */
+.roofline-wrapper {
+  position: relative;
+}
+.roofline-controls {
+  display: flex;
+  gap: 1.2rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 0.8rem;
+}
+.chip-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  cursor: pointer;
+  user-select: none;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.chip-toggle input { accent-color: var(--accent-burn); }
+.chip-swatch {
+  width: 12px; height: 12px;
+  border-radius: 2px;
+  display: inline-block;
+  border: 1px solid var(--border);
+}
+
+/* ---- Tooltip ---- */
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.8rem;
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  line-height: 1.5;
+  color: var(--text);
+  z-index: 200;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  box-shadow: 3px 3px 0 var(--border-light);
+}
+.tooltip.visible { opacity: 1; }
+.tooltip .tt-label {
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+  color: var(--accent-navy);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.tooltip .tt-row { color: var(--text-mid); }
+.tooltip .tt-val { color: var(--accent-burn); font-weight: 600; }
+
+/* ---- Performance Panel ---- */
+.perf-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.perf-grid .card svg { width: 100%; }
+
+/* ---- Legend ---- */
+.legend {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.6rem;
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.legend-swatch {
+  width: 12px; height: 12px;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+}
+
+/* ---- Key Insight Box ---- */
+.insight {
+  border: 1px solid var(--accent-teal);
+  border-left: 4px solid var(--accent-teal);
+  padding: 0.7rem 1rem;
+  margin-top: 1rem;
+  font-size: 0.78rem;
+  color: var(--text-mid);
+  background: rgba(26,122,109,0.04);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-family: var(--font-sans);
+  line-height: 1.55;
+}
+.insight strong { color: var(--accent-teal); font-weight: 700; }
+
+/* ---- Slider label value ---- */
+.slider-val {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent-burn);
+  min-width: 60px;
+}
+
+/* ============================================================
+   PRESENTATION MODE — Tour button
+   ============================================================ */
+.present-btn {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.35rem 0.9rem;
+  border-radius: var(--radius);
+  border: 2px solid var(--accent-navy);
+  background: var(--accent-navy);
+  color: #fff;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  transition: background var(--transition);
+}
+.present-btn:hover { background: #2a3d5c; }
+/* Tour modal styles are injected by present.js */
+
+/* ---- Responsive ---- */
+@media (max-width: 900px) {
+  .systolic-layout, .perf-grid { grid-template-columns: 1fr; }
+  .header { padding: 1rem; }
+  .panel-container { padding: 1rem; }
+  .tabs { padding: 0 1rem; overflow-x: auto; }
+}
+
+/* ---- Page load animation ---- */
+@keyframes staggerUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.header    { animation: staggerUp 0.4s ease 0.05s both; }
+.tabs      { animation: staggerUp 0.4s ease 0.15s both; }
+.panel.active .panel-header { animation: staggerUp 0.35s ease 0.2s both; }
+.panel.active .card:nth-child(1) { animation: staggerUp 0.35s ease 0.25s both; }
+.panel.active .card:nth-child(2) { animation: staggerUp 0.35s ease 0.32s both; }
+.panel.active .card:nth-child(3) { animation: staggerUp 0.35s ease 0.39s both; }
+.panel.active .card:nth-child(4) { animation: staggerUp 0.35s ease 0.46s both; }
+.panel.active .insight { animation: staggerUp 0.35s ease 0.5s both; }

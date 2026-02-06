@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TPU Architecture — Interactive Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ============ Header ============ -->
+  <header class="header">
+    <h1><span>TPU</span> Architecture Explorer</h1>
+    <span class="subtitle">Jouppi et al., ISCA '17 &mdash; In-Datacenter Performance Analysis of a Tensor Processing Unit</span>
+    <div class="header-actions">
+      <button class="present-btn" id="btnPresent" title="Enter presentation mode (arrow keys to navigate)">Present</button>
+    </div>
+  </header>
+
+  <!-- ============ Tab Bar ============ -->
+  <nav class="tabs" id="tabBar">
+    <button class="tab-btn active" data-tab="systolic">01 &mdash; Systolic Array</button>
+    <button class="tab-btn" data-tab="roofline">02 &mdash; Roofline Model</button>
+    <button class="tab-btn" data-tab="performance">03 &mdash; Performance</button>
+  </nav>
+
+  <!-- ============ Panels ============ -->
+  <main class="panel-container">
+
+    <!-- ---- Panel 1: Systolic Array ---- -->
+    <section class="panel active" id="panel-systolic">
+      <div class="panel-header">
+        <h2>Systolic Array &mdash; How the TPU Multiplies Matrices</h2>
+        <p>
+          The TPU's 256&times;256 matrix multiply unit uses a <strong>systolic array</strong> &mdash; data flows
+          left-to-right while pre-loaded weights sit in each cell. Partial sums accumulate downward as a
+          diagonal wavefront. Compare this with a CPU, which must repeatedly fetch the same data from memory.
+        </p>
+      </div>
+
+      <div class="controls" id="systolicControls">
+        <button class="primary" id="btnPlayPause">Play</button>
+        <button id="btnStep">Step</button>
+        <button id="btnReset">Reset</button>
+        <label>Speed <input type="range" id="speedSlider" min="1" max="10" value="4"></label>
+        <span class="cycle-display">Cycle: <span id="cycleNum">0</span></span>
+      </div>
+
+      <div class="systolic-layout">
+        <div class="card">
+          <div class="card-title">TPU &mdash; Systolic Data Flow</div>
+          <canvas id="canvasSystolic" width="560" height="560"></canvas>
+          <div class="stat-row">
+            <span class="stat-badge">Mem reads: <span class="val" id="tpuReads">0</span></span>
+            <span class="stat-badge">MACs: <span class="val" id="tpuMacs">0</span></span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">CPU &mdash; Sequential Dot Products</div>
+          <canvas id="canvasCPU" width="560" height="560"></canvas>
+          <div class="stat-row">
+            <span class="stat-badge">Mem reads: <span class="val" id="cpuReads">0</span></span>
+            <span class="stat-badge">MACs: <span class="val" id="cpuMacs">0</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="insight">
+        <strong>Key insight:</strong> For an N&times;N multiply, the CPU needs O(N&sup3;) memory reads.
+        The systolic array needs only O(N&sup2;) &mdash; each value is loaded once and reused spatially.
+        This is why the TPU packs <strong>65,536 MACs</strong> on a die half the size of the GPU.
+      </div>
+    </section>
+
+    <!-- ---- Panel 2: Roofline ---- -->
+    <section class="panel" id="panel-roofline">
+      <div class="panel-header">
+        <h2>Roofline Model &mdash; Why the TPU Wins</h2>
+        <p>
+          The Roofline model plots attainable performance (TOPS) against operational intensity
+          (ops / byte of weight memory). Applications below the roofline ceiling are either
+          <strong>memory-bound</strong> (under the slant) or <strong>compute-bound</strong> (under the flat).
+        </p>
+      </div>
+
+      <div class="card roofline-wrapper">
+        <div class="roofline-controls" id="rooflineControls">
+          <label class="chip-toggle">
+            <input type="checkbox" id="togCPU" checked>
+            <span class="chip-swatch" style="background:#607d8b"></span> Haswell CPU
+          </label>
+          <label class="chip-toggle">
+            <input type="checkbox" id="togGPU" checked>
+            <span class="chip-swatch" style="background:#2e7d32"></span> K80 GPU
+          </label>
+          <label class="chip-toggle">
+            <input type="checkbox" id="togTPU" checked>
+            <span class="chip-swatch" style="background:#c94a1a"></span> TPU
+          </label>
+          <span style="color:var(--text-muted); font-size:0.72rem; margin-left:0.6rem; font-family:var(--font-mono);">|</span>
+          <label style="font-family:var(--font-mono); font-size:0.72rem; color:var(--text-muted); display:flex; align-items:center; gap:0.4rem; text-transform:uppercase; letter-spacing:0.04em;">
+            TPU Mem BW
+            <input type="range" id="memBwSlider" min="34" max="200" value="34" step="1" style="width:150px; accent-color:var(--accent-burn);">
+            <span class="slider-val" id="memBwVal">34 GB/s</span>
+          </label>
+        </div>
+        <div id="rooflineChart"></div>
+        <div class="tooltip" id="rooflineTip"></div>
+      </div>
+
+      <div class="insight">
+        <strong>Key insight:</strong> 4 of 6 apps are <strong>memory-bound</strong> on the TPU, not compute-bound.
+        Drag the memory bandwidth slider to 170 GB/s (GDDR5) to see TPU' &mdash; performance <strong>triples</strong>
+        for memory-bound workloads, shifting the ridge point from 1350 to ~250 ops/byte.
+      </div>
+    </section>
+
+    <!-- ---- Panel 3: Performance ---- -->
+    <section class="panel" id="panel-performance">
+      <div class="panel-header">
+        <h2>Performance &amp; Efficiency &mdash; The Results</h2>
+        <p>
+          The TPU is 15&ndash;30&times; faster than contemporary CPUs and GPUs for inference,
+          with 30&ndash;80&times; better performance per watt &mdash; and it gets <em>better</em> under
+          strict latency constraints.
+        </p>
+      </div>
+
+      <div class="perf-grid">
+        <div class="card">
+          <div class="card-title">Relative Performance per Die (vs CPU = 1&times;)</div>
+          <div id="perfBarChart"></div>
+          <div class="legend" id="perfLegend"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Performance / Watt (relative to CPU server)</div>
+          <div id="perfWattChart"></div>
+          <div class="legend" id="wattLegend"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Die Area Breakdown</div>
+          <div id="dieAreaChart" style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Latency vs Throughput (MLP0, 7 ms deadline)</div>
+          <div id="latencyChart"></div>
+          <div class="controls" style="margin-top:0.6rem;">
+            <label>
+              Latency deadline
+              <input type="range" id="latencySlider" min="5" max="25" value="7" step="0.5" style="width:150px; accent-color:var(--accent-burn);">
+              <span class="slider-val" id="latencyVal">7.0 ms</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="insight">
+        <strong>Key insight:</strong> The TPU's deterministic, single-threaded execution model is a
+        better match for <strong>99th-percentile latency</strong> than the time-varying optimizations
+        of CPUs and GPUs. Under a 7 ms deadline, the TPU retains 80% of peak throughput while the
+        CPU and GPU drop to 42% and 37%.
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ Scripts ============ -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="data.js"></script>
+  <script src="systolic.js"></script>
+  <script src="roofline.js"></script>
+  <script src="performance.js"></script>
+  <script src="present.js"></script>
+  <script>
+    // ---- Tab switching ----
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      const btn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+      if (btn) btn.classList.add('active');
+      document.getElementById('panel-' + tabName).classList.add('active');
+      window.dispatchEvent(new Event('resize'));
+    }
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+  </script>
+</body>
+</html>
