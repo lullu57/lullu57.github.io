@@ -215,12 +215,12 @@
     var cW = container.clientWidth;
     if (cW < 10) return;
     container.innerHTML = "";
-    var margin = { top: 28, right: 30, bottom: 50, left: 60 };
+    var margin = { top: 36, right: 30, bottom: 50, left: 65 };
     var width = cW - margin.left - margin.right;
-    var height = 250 - margin.top - margin.bottom;
+    var height = 280 - margin.top - margin.bottom;
 
     var svg = d3.select(container).append("svg")
-      .attr("width", cW).attr("height", 250);
+      .attr("width", cW).attr("height", 280);
     var g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     var deadline = parseFloat(document.getElementById("latencySlider").value);
@@ -285,8 +285,8 @@
         // IPS label
         g.append("text")
           .attr("x", x(r.chip) + x.bandwidth() / 2)
-          .attr("y", y(r.ips) - 16).attr("text-anchor", "middle")
-          .attr("fill", col).attr("font-size", 10)
+          .attr("y", y(r.ips) - 18).attr("text-anchor", "middle")
+          .attr("fill", col).attr("font-size", 12)
           .attr("font-family", monoFont).attr("font-weight", 700)
           .text(d3.format(",")(r.ips) + " IPS");
 
@@ -294,13 +294,13 @@
         g.append("text")
           .attr("x", x(r.chip) + x.bandwidth() / 2)
           .attr("y", y(r.ips) - 5).attr("text-anchor", "middle")
-          .attr("fill", axisText).attr("font-size", 8).attr("font-family", monoFont)
-          .text(r.pctMax + "% peak (batch " + r.batch + ")");
+          .attr("fill", axisText).attr("font-size", 10).attr("font-family", monoFont)
+          .text(r.pctMax + "% peak  ·  batch " + r.batch);
       } else {
         g.append("text")
           .attr("x", x(r.chip) + x.bandwidth() / 2)
           .attr("y", height / 2).attr("text-anchor", "middle")
-          .attr("fill", col).attr("font-size", 9).attr("font-family", monoFont)
+          .attr("fill", col).attr("font-size", 11).attr("font-family", monoFont)
           .text("Cannot meet deadline");
       }
     });
@@ -308,27 +308,27 @@
     // Axes
     g.append("g").attr("transform", "translate(0," + height + ")")
       .call(d3.axisBottom(x).tickSizeOuter(0))
-      .selectAll("text").attr("fill", axisText).attr("font-size", 11).attr("font-family", monoFont);
+      .selectAll("text").attr("fill", axisText).attr("font-size", 12).attr("font-family", monoFont);
     g.selectAll(".domain, .tick line").attr("stroke", axisLine);
 
     g.append("g")
       .call(d3.axisLeft(y).ticks(5).tickFormat(function(d) { return d >= 1000 ? d3.format(".0s")(d) : d; }).tickSizeOuter(0))
-      .selectAll("text").attr("fill", axisText).attr("font-size", 9).attr("font-family", monoFont);
+      .selectAll("text").attr("fill", axisText).attr("font-size", 10).attr("font-family", monoFont);
     g.selectAll(".domain, .tick line").attr("stroke", axisLine);
 
     svg.append("text").attr("transform", "rotate(-90)")
       .attr("x", -(margin.top + height / 2)).attr("y", 14)
-      .attr("text-anchor", "middle").attr("fill", axisText).attr("font-size", 10).attr("font-family", monoFont)
+      .attr("text-anchor", "middle").attr("fill", axisText).attr("font-size", 11).attr("font-family", monoFont)
       .text("Inferences / sec (MLP0)");
 
-    // Top annotation: explain the tradeoff
-    g.append("text").attr("x", 0).attr("y", -10)
-      .attr("fill", "#b8860b").attr("font-size", 8).attr("font-family", monoFont)
-      .text("Dashed = max throughput (no deadline) | Solid = achievable within " + deadline.toFixed(0) + " ms");
+    // Top annotation line 1: legend
+    g.append("text").attr("x", 0).attr("y", -18)
+      .attr("fill", "#b8860b").attr("font-size", 9).attr("font-family", monoFont)
+      .text("Dashed = max (no deadline)  |  Solid = achievable within " + deadline.toFixed(0) + " ms");
 
-    // Explain the direction
-    g.append("text").attr("x", width).attr("y", -10).attr("text-anchor", "end")
-      .attr("fill", axisText).attr("font-size", 8).attr("font-family", monoFont)
+    // Top annotation line 2: direction hint
+    g.append("text").attr("x", 0).attr("y", -6)
+      .attr("fill", axisText).attr("font-size", 9).attr("font-family", monoFont).attr("opacity", 0.7)
       .text("\u2190 Tighter deadline = smaller batches = less throughput");
   }
 

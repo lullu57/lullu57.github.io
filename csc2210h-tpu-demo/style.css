@@ -200,9 +200,17 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-muted);
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.3rem;
   padding-left: 0.6rem;
   border-left: 2px solid var(--accent-teal);
+}
+.card-desc {
+  font-family: var(--font-sans);
+  font-size: 0.76rem;
+  color: var(--text-mid);
+  line-height: 1.5;
+  margin: 0 0 0.7rem 0.6rem;
+  opacity: 0.8;
 }
 
 /* ---- Controls row ---- */

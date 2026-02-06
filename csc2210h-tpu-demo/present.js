@@ -9,21 +9,23 @@
 
   // ---- Presentation Steps ----
   // target: CSS selector of the element to point at (scrolled into view)
-  // position: where the modal appears relative to target ("bottom" | "top" | "right" | "left")
+  // position: preferred side for the modal ("bottom" | "top" | "right" | "left")
+  //           The algorithm will fall back to another side if the modal would
+  //           cover the target element.
   const steps = [
     {
       tab: "systolic",
       target: ".panel-header",
       position: "bottom",
       title: "1/11 — The Problem",
-      notes: "In 2013 Google projected that voice search using DNNs would <strong>double datacenter compute demand</strong>. CPUs were too slow, GPUs too power-hungry. They needed 10x cost-performance improvement — so they built a custom ASIC in just <strong>15 months</strong>: the Tensor Processing Unit.",
+      notes: "In 2013 Google projected that voice search using DNNs would <strong>double datacenter compute demand</strong>. CPUs were too slow, GPUs too power-hungry. They needed 10\u00d7 cost-performance improvement — so they built a custom ASIC in just <strong>15 months</strong>: the Tensor Processing Unit.",
     },
     {
       tab: "systolic",
       target: "#canvasSystolic",
-      position: "right",
+      position: "left",
       title: "2/11 — Systolic Array: The Heart of the TPU",
-      notes: "The TPU's core is a <strong>256×256 systolic array</strong> of 8-bit MAC units. Activations flow left-to-right, weights are pre-loaded. Each cell computes a partial sum and passes it down. Press <strong>Play</strong> to see the diagonal wavefront propagate.",
+      notes: "The TPU's core is a <strong>256\u00d7256 systolic array</strong> of 8-bit MAC units. Activations flow left-to-right, weights are pre-loaded. Each cell computes a partial sum and passes it down. Press <strong>Play</strong> to see the diagonal wavefront propagate.",
       action: function () { document.getElementById("btnReset").click(); }
     },
     {
@@ -31,29 +33,29 @@
       target: ".stat-row",
       position: "top",
       title: "3/11 — Data Reuse: TPU vs CPU",
-      notes: "Watch the <strong>memory read counters</strong>. The TPU loads each value <em>once</em> and reuses it across the array. The CPU fetches both operands for <em>every single MAC</em>. For N×N: that's <strong>O(N²) vs O(N³)</strong> memory reads — the key to fitting 65,536 MACs on a small die.",
+      notes: "Watch the <strong>memory read counters</strong>. The TPU loads each value <em>once</em> and reuses it across the array. The CPU fetches both operands for <em>every single MAC</em>. For N\u00d7N: <strong>O(N\u00b2) vs O(N\u00b3)</strong> memory reads — the key to fitting 65,536 MACs on a small die.",
       action: function () { document.getElementById("btnPlayPause").click(); }
     },
     {
       tab: "roofline",
       target: "#rooflineChart",
-      position: "bottom",
+      position: "left",
       title: "4/11 — Roofline Model Overview",
-      notes: "The Roofline model plots attainable <strong>TOPS</strong> (y-axis) vs <strong>operational intensity</strong> in ops/byte (x-axis). The slanted region = <em>memory-bound</em>. The flat ceiling = <em>compute-bound</em>. Three rooflines overlaid: CPU (gray), GPU (green), TPU (orange).",
+      notes: "The Roofline model plots attainable <strong>TOPS</strong> (y) vs <strong>operational intensity</strong> ops/byte (x). Slanted region = <em>memory-bound</em>. Flat ceiling = <em>compute-bound</em>. Three rooflines: CPU (gray), GPU (green), TPU (orange).",
     },
     {
       tab: "roofline",
       target: "#rooflineChart",
-      position: "bottom",
+      position: "left",
       title: "5/11 — Memory-Bound Workloads",
-      notes: "4 of 6 production apps (MLPs + LSTMs) sit under the <strong>slanted part</strong> — they are memory-bound, not compute-bound. Only the CNNs hit the flat ceiling. Yet architects focus on CNNs, which are just <strong>5% of Google's datacenter NN workload</strong>.",
+      notes: "4 of 6 production apps (MLPs + LSTMs) sit under the <strong>slanted part</strong> — memory-bound, not compute-bound. Only the CNNs hit the flat ceiling. Yet architects focus on CNNs, which are just <strong>5% of Google's datacenter NN workload</strong>.",
     },
     {
       tab: "roofline",
       target: "#memBwSlider",
-      position: "bottom",
+      position: "top",
       title: "6/11 — TPU': What If Better Memory?",
-      notes: "Drag the slider to ~170 GB/s (GDDR5). The ridge point shifts left and memory-bound apps <strong>triple</strong> in performance. The paper shows that upgrading memory alone would make the TPU <strong>30–50x faster</strong> than CPU/GPU. The bottleneck was memory, not compute.",
+      notes: "Drag the slider to ~170 GB/s (GDDR5). The ridge point shifts left and memory-bound apps <strong>triple</strong> in performance. Upgrading memory alone makes the TPU <strong>30–50\u00d7 faster</strong> than CPU/GPU. The bottleneck was memory, not compute.",
       action: function () {
         document.getElementById("memBwSlider").value = 34;
         document.getElementById("memBwSlider").dispatchEvent(new Event("input"));
@@ -62,30 +64,30 @@
     {
       tab: "performance",
       target: "#perfBarChart",
-      position: "bottom",
+      position: "right",
       title: "7/11 — Relative Performance",
-      notes: "TPU is <strong>14.5x faster</strong> (geometric mean) to <strong>29.2x</strong> (weighted by workload mix) vs CPU. The K80 GPU is barely faster than CPU for inference — just 1.1x. The GPU's throughput-oriented architecture struggles with the strict latency requirements of inference.",
+      notes: "TPU is <strong>14.5\u00d7 faster</strong> (geo-mean) to <strong>29.2\u00d7</strong> (weighted) vs CPU. The K80 GPU is barely faster than CPU for inference — just 1.1\u00d7. The GPU's throughput-oriented arch struggles with strict latency requirements.",
     },
     {
       tab: "performance",
       target: "#perfWattChart",
-      position: "bottom",
+      position: "right",
       title: "8/11 — Performance per Watt",
-      notes: "TPU delivers <strong>30–80x</strong> better perf/Watt than CPU, <strong>14–29x</strong> better than GPU. The hypothetical TPU' with GDDR5 (orange bars) reaches <strong>196x</strong>. This efficiency is what justified building a custom ASIC — power correlates with total cost of ownership.",
+      notes: "TPU delivers <strong>30–80\u00d7</strong> better perf/Watt than CPU, <strong>14–29\u00d7</strong> better than GPU. The hypothetical TPU' with GDDR5 reaches <strong>196\u00d7</strong>. Power = dominant cost in datacenters, so this metric justified the custom ASIC.",
     },
     {
       tab: "performance",
       target: "#dieAreaChart",
-      position: "top",
+      position: "right",
       title: "9/11 — Die Area: Minimalism as Virtue",
-      notes: "The TPU dedicates <strong>67% to datapath</strong> and just <strong>2% to control</strong>. CPUs/GPUs spend ~25% on control (branch prediction, OoO, caches). The TPU drops all of that — no caches, no speculation. This is why it fits <strong>25x more MACs</strong> in <strong>half the die area</strong>.",
+      notes: "TPU: <strong>67% datapath</strong>, <strong>2% control</strong>. CPUs/GPUs: ~25% control (branch prediction, OoO, caches). The TPU drops all of that — no caches, no speculation. Fits <strong>25\u00d7 more MACs</strong> in <strong>half the die area</strong>.",
     },
     {
       tab: "performance",
       target: "#latencyChart",
-      position: "top",
+      position: "right",
       title: "10/11 — Latency Constraints",
-      notes: "Set the deadline to 7 ms. The TPU retains <strong>80% of peak</strong> throughput. CPU drops to 42%, GPU to 37%. Why? Tighter deadlines force smaller batch sizes. The TPU's <strong>deterministic execution</strong> handles small batches efficiently — no time wasted on thread scheduling or cache misses.",
+      notes: "Set deadline to 7 ms. TPU retains <strong>80% of peak</strong>. CPU → 42%, GPU → 37%. Tighter deadlines force smaller batches. The TPU's <strong>deterministic execution</strong> handles small batches efficiently — no thread scheduling or cache miss overhead.",
       action: function () {
         document.getElementById("latencySlider").value = 7;
         document.getElementById("latencySlider").dispatchEvent(new Event("input"));
@@ -96,7 +98,7 @@
       target: ".insight",
       position: "top",
       title: "11/11 — Conclusion",
-      notes: "The TPU succeeded by making the right trade-offs: <strong>domain-specific design</strong>, 8-bit integer systolic arrays, large on-chip memory, deterministic execution. Order-of-magnitude improvements — rare in computer architecture. The lesson: sacrificing generality for the right specializations yields <strong>massive gains</strong>.",
+      notes: "The TPU made the right trade-offs: <strong>domain-specific design</strong>, 8-bit systolic arrays, large on-chip memory, deterministic execution. Order-of-magnitude improvements — rare in computer architecture. Sacrificing generality for targeted specialization yields <strong>massive gains</strong>.",
     },
   ];
 
@@ -104,7 +106,7 @@
   let active = false;
 
   // ---- Create overlay elements ----
-  // Scrim: subtle semi-transparent backdrop (no full darkening)
+  // Scrim: very subtle tint, NO blur — content stays fully readable
   const scrim = document.createElement("div");
   scrim.id = "tourScrim";
   document.body.appendChild(scrim);
@@ -116,14 +118,14 @@
     '<div id="tourArrow"></div>',
     '<div id="tourHeader">',
     '  <span id="tourTitle"></span>',
-    '  <button id="tourClose" title="Exit (Esc)">✕</button>',
+    '  <button id="tourClose" title="Exit (Esc)">\u2715</button>',
     '</div>',
     '<div id="tourNotes"></div>',
     '<div id="tourFooter">',
     '  <div id="tourProgress"><div id="tourProgressFill"></div></div>',
     '  <div id="tourNav">',
-    '    <button id="tourPrev">← Prev</button>',
-    '    <button id="tourNext">Next →</button>',
+    '    <button id="tourPrev">\u2190 Prev</button>',
+    '    <button id="tourNext">Next \u2192</button>',
     '  </div>',
     '</div>',
   ].join("\n");
@@ -135,8 +137,7 @@
     #tourScrim {
       display: none;
       position: fixed; inset: 0; z-index: 8000;
-      background: rgba(244,239,230,0.35);
-      backdrop-filter: blur(1px);
+      background: rgba(244,239,230,0.15);
       pointer-events: none;
     }
     #tourScrim.active { display: block; }
@@ -144,15 +145,19 @@
     #tourModal {
       display: none;
       position: absolute; z-index: 8500;
-      width: 380px; max-width: calc(100vw - 32px);
+      width: 340px; max-width: calc(100vw - 32px);
       background: #fffdf8;
       border: 2px solid #c94a1a;
       border-radius: 6px;
       box-shadow: 4px 4px 0 rgba(201,74,26,0.15), 0 8px 32px rgba(42,37,32,0.18);
       font-family: 'IBM Plex Sans', sans-serif;
       pointer-events: auto;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
     }
     #tourModal.active { display: block; }
+    #tourModal.visible { opacity: 1; transform: translateY(0); }
 
     #tourArrow {
       position: absolute;
@@ -161,20 +166,22 @@
       border: 2px solid #c94a1a;
       transform: rotate(45deg);
       z-index: -1;
+      transition: top 0.15s, left 0.15s, right 0.15s, bottom 0.15s;
     }
+    /* Arrow classes: named for which side of the MODAL the arrow sits on */
     #tourArrow.arrow-top    { top: -8px; left: 32px; border-right: none; border-bottom: none; }
     #tourArrow.arrow-bottom { bottom: -8px; left: 32px; border-left: none; border-top: none; }
-    #tourArrow.arrow-left   { left: -8px; top: 20px; border-top: none; border-right: none; }
-    #tourArrow.arrow-right  { right: -8px; top: 20px; border-bottom: none; border-left: none; }
+    #tourArrow.arrow-left   { left: -8px; top: 24px; border-top: none; border-right: none; }
+    #tourArrow.arrow-right  { right: -8px; top: 24px; border-bottom: none; border-left: none; }
 
     #tourHeader {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0.6rem 0.8rem;
+      padding: 0.55rem 0.8rem;
       background: #c94a1a;
       color: #fff;
       border-radius: 4px 4px 0 0;
       font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.06em;
@@ -187,20 +194,20 @@
     #tourClose:hover { opacity: 1; }
 
     #tourNotes {
-      padding: 0.8rem;
-      font-size: 0.82rem;
-      line-height: 1.6;
+      padding: 0.7rem 0.8rem;
+      font-size: 0.78rem;
+      line-height: 1.55;
       color: #2a2520;
     }
     #tourNotes strong { color: #c94a1a; }
     #tourNotes em { color: #1a7a6d; font-style: italic; }
 
     #tourFooter {
-      padding: 0 0.8rem 0.6rem;
+      padding: 0 0.8rem 0.5rem;
     }
     #tourProgress {
       height: 3px; background: #ece5d8; border-radius: 2px;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
     }
     #tourProgressFill {
       height: 100%; background: #c94a1a; border-radius: 2px;
@@ -211,8 +218,8 @@
     }
     #tourNav button {
       font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.68rem; font-weight: 600;
-      padding: 0.3rem 0.7rem;
+      font-size: 0.65rem; font-weight: 600;
+      padding: 0.25rem 0.6rem;
       border: 1px solid #c8bfad; border-radius: 3px;
       background: #f4efe6; color: #2a2520;
       cursor: pointer; text-transform: uppercase; letter-spacing: 0.04em;
@@ -222,92 +229,133 @@
   `;
   document.head.appendChild(css);
 
-  // ---- Position the modal relative to target ----
+  // ---- Position the modal so it does NOT overlap the target ----
   function positionModal(step) {
     var el = document.querySelector(step.target);
     if (!el) return;
 
-    // Scroll target into view
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    // Scroll target into view — place it toward the top so there's room for modal
+    el.scrollIntoView({ behavior: "smooth", block: "nearest" });
 
     var arrow = document.getElementById("tourArrow");
-    arrow.className = ""; // reset
+    arrow.className = "";
 
-    // Wait for scroll to settle, then position
+    // Wait for scroll + reflow
     setTimeout(function () {
       var rect = el.getBoundingClientRect();
-      var mW = modal.offsetWidth;
-      var mH = modal.offsetHeight;
+      var mW = modal.offsetWidth || 340;
+      var mH = modal.offsetHeight || 260;
       var scrollY = window.scrollY;
       var scrollX = window.scrollX;
       var vw = window.innerWidth;
       var vh = window.innerHeight;
+      var gap = 16; // space between target and modal
 
-      var top, left;
-      var pos = step.position || "bottom";
+      // Try each side. Pick the preferred one if it fits; otherwise cycle through.
+      var sides = [step.position || "right", "right", "left", "bottom", "top"];
+      var chosen = null;
 
-      // If target is very wide (e.g. full-width chart), place below/above centered
-      if (pos === "bottom") {
-        top = rect.bottom + scrollY + 14;
-        left = rect.left + scrollX + Math.min(20, rect.width / 2 - mW / 2);
-        arrow.className = "arrow-top";
-      } else if (pos === "top") {
-        top = rect.top + scrollY - mH - 14;
-        left = rect.left + scrollX + Math.min(20, rect.width / 2 - mW / 2);
-        arrow.className = "arrow-bottom";
-      } else if (pos === "right") {
-        top = rect.top + scrollY + rect.height / 2 - mH / 2;
-        left = rect.right + scrollX + 14;
-        arrow.className = "arrow-left";
-      } else { // left
-        top = rect.top + scrollY + rect.height / 2 - mH / 2;
-        left = rect.left + scrollX - mW - 14;
-        arrow.className = "arrow-right";
+      for (var si = 0; si < sides.length; si++) {
+        var s = sides[si];
+        var t, l;
+
+        if (s === "right") {
+          l = rect.right + gap;
+          t = rect.top + Math.min(0, rect.height / 2 - mH / 2);
+          if (l + mW <= vw - 8) { chosen = { top: t, left: l, arrow: "arrow-left" }; break; }
+        } else if (s === "left") {
+          l = rect.left - mW - gap;
+          t = rect.top + Math.min(0, rect.height / 2 - mH / 2);
+          if (l >= 8) { chosen = { top: t, left: l, arrow: "arrow-right" }; break; }
+        } else if (s === "bottom") {
+          t = rect.bottom + gap;
+          l = rect.left + Math.min(20, rect.width / 2 - mW / 2);
+          if (t + mH <= vh - 8) { chosen = { top: t, left: l, arrow: "arrow-top" }; break; }
+        } else if (s === "top") {
+          t = rect.top - mH - gap;
+          l = rect.left + Math.min(20, rect.width / 2 - mW / 2);
+          if (t >= 8) { chosen = { top: t, left: l, arrow: "arrow-bottom" }; break; }
+        }
       }
 
-      // Clamp to viewport
-      left = Math.max(8 + scrollX, Math.min(left, scrollX + vw - mW - 8));
-      top = Math.max(8 + scrollY, Math.min(top, scrollY + vh - mH - 8));
+      // Fallback: just place to the right, clamped
+      if (!chosen) {
+        chosen = { top: rect.top, left: rect.right + gap, arrow: "arrow-left" };
+      }
 
-      modal.style.top = top + "px";
-      modal.style.left = left + "px";
+      // Clamp to viewport (using viewport coords, then add scroll)
+      chosen.left = Math.max(8, Math.min(chosen.left, vw - mW - 8));
+      chosen.top = Math.max(8, Math.min(chosen.top, vh - mH - 8));
+
+      // Convert to absolute (document) coords
+      modal.style.top = (chosen.top + scrollY) + "px";
+      modal.style.left = (chosen.left + scrollX) + "px";
+      arrow.className = chosen.arrow;
     }, 350);
   }
 
+  var transitioning = false;
+
   function show(idx) {
-    if (idx < 0 || idx >= steps.length) return;
-    currentStep = idx;
+    if (idx < 0 || idx >= steps.length || transitioning) return;
+    transitioning = true;
+
     var s = steps[idx];
+    var isFirstStep = currentStep < 0; // entering fresh
+    currentStep = idx;
 
-    // Switch tab
-    if (typeof switchTab === "function") {
-      switchTab(s.tab);
+    // Step 1: fade the modal out (skip on first show — it's already invisible)
+    if (!isFirstStep) {
+      modal.classList.remove("visible");
     }
 
-    document.getElementById("tourTitle").textContent = s.title;
-    document.getElementById("tourNotes").innerHTML = s.notes;
-    document.getElementById("tourProgressFill").style.width = ((idx + 1) / steps.length * 100) + "%";
+    var fadeOutMs = isFirstStep ? 0 : 220;
 
-    // Run action
-    if (s.action) {
-      setTimeout(s.action, 200);
-    }
+    setTimeout(function () {
+      // Step 2: switch tab + update content while invisible
+      if (typeof switchTab === "function") {
+        switchTab(s.tab);
+      }
 
-    // Position after tab switch + render
-    setTimeout(function () { positionModal(s); }, 250);
+      document.getElementById("tourTitle").textContent = s.title;
+      document.getElementById("tourNotes").innerHTML = s.notes;
+      document.getElementById("tourProgressFill").style.width = ((idx + 1) / steps.length * 100) + "%";
+
+      // Run action
+      if (s.action) {
+        setTimeout(s.action, 100);
+      }
+
+      // Step 3: reposition, then fade in after layout settles
+      setTimeout(function () {
+        positionModal(s);
+        // Step 4: fade in after positioning
+        setTimeout(function () {
+          modal.classList.add("visible");
+          transitioning = false;
+        }, 380); // after positionModal's internal 350ms timeout + margin
+      }, 50);
+    }, fadeOutMs);
   }
 
   function enter() {
     active = true;
+    currentStep = -1; // mark as fresh entry
     scrim.classList.add("active");
     modal.classList.add("active");
+    modal.classList.remove("visible");
     show(0);
   }
 
   function exit() {
     active = false;
-    scrim.classList.remove("active");
-    modal.classList.remove("active");
+    transitioning = false;
+    modal.classList.remove("visible");
+    // Wait for fade-out, then hide
+    setTimeout(function () {
+      scrim.classList.remove("active");
+      modal.classList.remove("active");
+    }, 250);
   }
 
   function next() { if (currentStep < steps.length - 1) show(currentStep + 1); }
@@ -319,13 +367,17 @@
   document.getElementById("tourNext").addEventListener("click", next);
   document.getElementById("tourPrev").addEventListener("click", prev);
 
-  // Click through scrim to interact with the page
-  scrim.addEventListener("click", function (e) { e.stopPropagation(); });
-
   document.addEventListener("keydown", function (e) {
     if (!active) return;
     if (e.key === "Escape") { exit(); e.preventDefault(); }
     if (e.key === "ArrowRight" || e.key === " ") { next(); e.preventDefault(); }
     if (e.key === "ArrowLeft") { prev(); e.preventDefault(); }
+  });
+
+  // Reposition on window resize while active
+  window.addEventListener("resize", function () {
+    if (active && currentStep >= 0) {
+      positionModal(steps[currentStep]);
+    }
   });
 })();

@@ -103,9 +103,15 @@
 
     dataInFlight = newData;
     cycle++;
-    // Clear active highlights once all cycles are done so results show cleanly
-    if (cycle >= totalCycles) {
-      dataInFlight = Array.from({ length: N }, () => new Array(N).fill(null));
+    // Immediately clear cells whose computation just finished so they
+    // flip to green on the very next render (not one frame late).
+    // Cell (i,j)'s last active cycle is i+j+N-1. Once cycle > that, it's done.
+    for (let ci = 0; ci < N; ci++) {
+      for (let cj = 0; cj < N; cj++) {
+        if (cycle > ci + cj + N - 1) {
+          dataInFlight[ci][cj] = null;
+        }
+      }
     }
     updateCounters();
   }

@@ -132,20 +132,24 @@
       <div class="perf-grid">
         <div class="card">
           <div class="card-title">Relative Performance per Die (vs CPU = 1&times;)</div>
+          <p class="card-desc">How many times faster each chip is compared to the Haswell CPU baseline. Geo-mean averages across all six NN workloads; weighted mean reflects actual datacenter traffic mix.</p>
           <div id="perfBarChart"></div>
           <div class="legend" id="perfLegend"></div>
         </div>
         <div class="card">
           <div class="card-title">Performance / Watt (relative to CPU server)</div>
+          <p class="card-desc">Throughput normalized by total system power (TDP). Higher = more efficient. This is the metric that justified building a custom ASIC &mdash; power is the dominant cost in datacenters.</p>
           <div id="perfWattChart"></div>
           <div class="legend" id="wattLegend"></div>
         </div>
         <div class="card">
           <div class="card-title">Die Area Breakdown</div>
+          <p class="card-desc">How each chip allocates its silicon. The TPU dedicates 67% to compute datapath vs ~24% for CPU/GPU. Minimal control logic means more room for MAC units.</p>
           <div id="dieAreaChart" style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;"></div>
         </div>
         <div class="card">
-          <div class="card-title">Latency vs Throughput (MLP0, 7 ms deadline)</div>
+          <div class="card-title">Latency vs Throughput (MLP0, 7&thinsp;ms deadline)</div>
+          <p class="card-desc">Tighter latency deadlines force smaller batch sizes, reducing throughput. The TPU&rsquo;s deterministic execution retains more throughput under strict deadlines than CPU or GPU.</p>
           <div id="latencyChart"></div>
           <div class="controls" style="margin-top:0.6rem;">
             <label>
