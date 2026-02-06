@@ -181,6 +181,11 @@
     const container = document.getElementById("dieAreaChart");
     if (container.clientWidth < 10) return; // panel not visible yet
     container.innerHTML = "";
+    container.style.display = "flex";
+    container.style.justifyContent = "center";
+    container.style.alignItems = "flex-start";
+    container.style.flexWrap = "wrap";
+    container.style.gap = "24px";
 
     var configs = [
       { title: "TPU Die (<331 mm\u00B2)", data: DATA.dieArea.tpu },
@@ -190,25 +195,30 @@
     var mob = isMobile();
     var cW = container.clientWidth;
 
+    // Use consistent sizing for both charts
+    var halfW = Math.floor((cW - 60) / 2);
+    var size = mob ? Math.min(180, cW - 32) : Math.min(240, halfW);
+    var radius = size / 2 - 8, innerR = radius * 0.45;
+    // Consistent SVG width for both — use the max legend items count
+    var maxItems = Math.max(configs[0].data.length, configs[1].data.length);
+    var legendH = maxItems * 20 + 12;
+    var svgW = mob ? Math.max(size + 20, 240) : Math.max(size + 40, 300);
+    var svgH = size + 30 + legendH;
+
     configs.forEach(function(cfg) {
       var wrap = document.createElement("div");
       wrap.style.textAlign = "center";
-      wrap.style.flex = "1 1 0";
-      wrap.style.minWidth = mob ? "200px" : "320px";
+      wrap.style.flex = "0 1 auto";
       container.appendChild(wrap);
-
-      var halfW = Math.floor((cW - 48) / 2);
-      var size = mob ? Math.min(200, cW - 32) : Math.min(260, halfW);
-      var radius = size / 2 - 10, innerR = radius * 0.45;
-      var legendH = cfg.data.length * 20 + 12;
-      var svgW = mob ? Math.max(size, 240) : Math.max(size + 80, 360);
-      var svgH = size + 30 + legendH;
 
       var svg = d3.select(wrap).append("svg")
         .attr("width", svgW).attr("height", svgH)
         .style("display", "block").style("margin", "0 auto");
+
+      // Center the donut at the horizontal middle of the SVG
+      var cx = svgW / 2;
       var gg = svg.append("g")
-        .attr("transform", "translate(" + size / 2 + "," + size / 2 + ")");
+        .attr("transform", "translate(" + cx + "," + size / 2 + ")");
 
       var pie = d3.pie().value(function(d) { return d.pct; }).sort(null).padAngle(0.02);
       var arc = d3.arc().innerRadius(innerR).outerRadius(radius);
@@ -217,12 +227,15 @@
         .attr("d", arc).attr("fill", function(d) { return d.data.color; })
         .attr("stroke", "#fffdf8").attr("stroke-width", 1.5).attr("opacity", 0.9);
 
-      svg.append("text").attr("x", size / 2).attr("y", size + 18)
+      // Title centered under donut
+      svg.append("text").attr("x", cx).attr("y", size + 18)
         .attr("text-anchor", "middle").attr("fill", "#2a2520")
         .attr("font-size", mob ? 11 : 13).attr("font-weight", 700)
         .attr("font-family", monoFont).text(cfg.title);
 
-      var leg = svg.append("g").attr("transform", "translate(8, " + (size + 32) + ")");
+      // Legend — centered horizontally under the title
+      var legX = mob ? 12 : Math.max(12, cx - size / 2 - 10);
+      var leg = svg.append("g").attr("transform", "translate(" + legX + ", " + (size + 34) + ")");
       cfg.data.forEach(function(d, i) {
         var ly = i * 20;
         leg.append("rect").attr("x", 0).attr("y", ly).attr("width", 13).attr("height", 13)

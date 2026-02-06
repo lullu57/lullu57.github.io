@@ -460,15 +460,15 @@ body {
   display: grid;
   position: relative;
   gap: 18px 8px;
-  grid-template-columns: 80px 24px 100px 28px 170px 22px 108px 16px 185px;
+  grid-template-columns: 80px 20px 100px 10px 52px 10px 170px 18px 108px 14px 185px;
   grid-template-rows: auto auto auto auto auto auto;
   grid-template-areas:
-    ".     .  .     .  dram   .  .      .  .    "
-    "pcie  .  host  .  ddr    .  .      .  wfifo"
-    "pcie  .  host  .  ubuf   .  setup  .  mmu  "
-    "pcie  .  host  .  .      .  .      .  acc  "
-    ".     .  ctrl  .  .      .  .      .  act  "
-    ".     .  instr .  .      .  .      .  norm ";
+    ".     .  .     .  .      .  dram   .  .      .  .    "
+    "pcie  .  host  .  .      .  ddr    .  .      .  wfifo"
+    "pcie  .  host  .  .      .  ubuf   .  setup  .  mmu  "
+    "pcie  .  host  .  .      .  .      .  .      .  acc  "
+    ".     .  .     .  ctrl   .  .      .  .      .  act  "
+    ".     .  .     .  instr  .  .      .  .      .  norm ";
   align-items: center;
   justify-items: center;
   justify-content: center;
@@ -483,13 +483,18 @@ body {
   min-height: unset;
 }
 
-/* Ctrl & Instr blocks — smaller like original */
+/* Ctrl & Instr blocks — compact like ctrlBox labels */
 #arch-ctrl,
 #arch-instr {
-  padding: 0.3rem 0.5rem;
-  font-size: 0.6rem;
-  min-height: 32px;
+  padding: 0.15rem 0.2rem;
+  font-size: 0.5rem;
+  min-height: 16px;
+  letter-spacing: 0.04em;
 }
+
+/* SVG control boxes — interactive hover */
+.arch-svg-arrows .ctrl-interactive { pointer-events: auto; cursor: pointer; }
+.arch-svg-arrows .ctrl-interactive:hover rect { filter: brightness(1.2); }
 
 .arch-block {
   padding: 0.6rem 0.5rem;

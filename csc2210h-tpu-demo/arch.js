@@ -247,6 +247,44 @@
     tip.classList.remove("visible");
   }
 
+  // Attach tooltip to SVG ctrl boxes (called from drawSvgArrows)
+  function attachCtrlBoxTip(grp, boxPos) {
+    grp.setAttribute("class", "ctrl-interactive");
+    var ctrlData = components["arch-ctrl"];
+    if (!ctrlData) return;
+
+    function show() {
+      if (activeBlock) activeBlock.classList.remove("arch-block-active");
+      activeBlock = null;
+      tip.innerHTML = buildTipHTML(ctrlData);
+      tip.classList.add("visible");
+      if (window.innerWidth < 600) {
+        tip.style.position = "fixed";
+        tip.style.bottom = "0"; tip.style.left = "0";
+        tip.style.right = "0"; tip.style.top = "auto";
+        tip.style.maxHeight = "50vh"; return;
+      }
+      tip.style.position = "absolute";
+      tip.style.bottom = ""; tip.style.right = ""; tip.style.maxHeight = "";
+      var tW = Math.min(380, window.innerWidth - 32);
+      tip.style.width = tW + "px";
+      var leftPos = boxPos.r + 14;
+      if (leftPos + tW > diagram.clientWidth + 20) leftPos = boxPos.l - tW - 14;
+      tip.style.left = leftPos + "px";
+      tip.style.top = Math.max(0, boxPos.cy - 40) + "px";
+    }
+
+    if ("ontouchstart" in window) {
+      grp.addEventListener("click", function (e) {
+        e.stopPropagation();
+        tip.classList.contains("visible") ? hideTip() : show();
+      });
+    } else {
+      grp.addEventListener("mouseenter", show);
+      grp.addEventListener("mouseleave", function () { hideTip(); });
+    }
+  }
+
   // Wire events
   var blocks = diagram.querySelectorAll(".arch-block");
   var isTouchDevice = "ontouchstart" in window;
@@ -372,17 +410,21 @@
       }
     }
 
-    // small red control box drawn in SVG
+    // small red control box drawn in SVG — with tooltip on hover/tap
     function ctrlBox(cx, cy, bw, bh) {
       bw = bw || 32; bh = bh || 14;
-      svg.appendChild(el("rect", { x: cx - bw / 2, y: cy - bh / 2,
+      var grp = el("g", {});
+      grp.appendChild(el("rect", { x: cx - bw / 2, y: cy - bh / 2,
         width: bw, height: bh, rx: 2, ry: 2, fill: C_CTRL, opacity: "0.92" }));
       var t = el("text", { x: cx, y: cy + 3, "text-anchor": "middle", fill: "#fff",
         "font-size": "6.5", "font-family": "'IBM Plex Mono', monospace", "font-weight": "700" });
       t.textContent = "CTRL";
-      svg.appendChild(t);
-      return { cx: cx, cy: cy, t: cy - bh / 2, b: cy + bh / 2,
-               l: cx - bw / 2, r: cx + bw / 2 };
+      grp.appendChild(t);
+      svg.appendChild(grp);
+      var box = { cx: cx, cy: cy, t: cy - bh / 2, b: cy + bh / 2,
+                  l: cx - bw / 2, r: cx + bw / 2 };
+      attachCtrlBoxTip(grp, box);
+      return box;
     }
 
     // ---- block positions ----
@@ -476,62 +518,70 @@
     lbl((norm.l + retX) / 2, norm.cy - 8, "167 GiB/s");
 
     // =============================================================
-    //  CONTROL-FLOW ARROWS  (thin RED, routed around data paths)
-    //  Ctrl & Instr are now in col 3 (host column), below Host.
-    //  The Norm→UBuf return path is in col 5 — no overlap.
+    //  CONTROL-FLOW ARROWS  (thin RED)
+    //  Ctrl & Instr are now in their own column between Host & UBuf.
+    //  Flow: Host → Instr → Ctrl → C1 → C2 → C3 → Ctrl → Host
     // =============================================================
     var csw = 1.3;
 
-    // --- SVG control boxes positioned in gaps between rows ---
-    // C1: upper-left — in the host / ubuf gap, between rows 2–3
-    var gapHL = (host.r + ubuf.l) / 2;
+    // --- SVG control boxes in gaps between rows ---
+    // C1: between rows 2–3, in the ctrl column gap (above main data row)
+    var c1x = ctrl ? ctrl.cx : (host.r + ubuf.l) / 2;
     var rowGap23 = (ddr.b + ubuf.t) / 2;
-    var C1 = ctrlBox(gapHL, rowGap23);
+    var C1 = ctrlBox(c1x, rowGap23);
 
-    // C2: upper-right — in the ubuf / setup gap, between rows 2–3
-    var gapRS = (ubuf.r + setup.l) / 2 + 2;
-    var C2 = ctrlBox(gapRS, rowGap23);
+    // C2: between rows 2–3, in the ubuf/setup gap
+    var c2x = (ubuf.r + setup.l) / 2 + 2;
+    var C2 = ctrlBox(c2x, rowGap23);
 
     // C3: right side — left of acc/act gap (controls compute pipeline)
     var c3x = acc.l - 22;
     var c3y = (acc.b + act.t) / 2;
     var C3 = ctrlBox(c3x, c3y);
 
-    // -- Instr → Ctrl  (upward, both in col 3) --
+    // -- Host → Instr  (instructions come from host, L-shape down then right) --
+    if (host && instr) {
+      pline([
+        [host.cx, host.b + g],
+        [host.cx, instr.cy],
+        [instr.l - g, instr.cy]
+      ], C_CTRL, "mCtrl", csw);
+    }
+
+    // -- Instr → Ctrl  (upward, Instr below Ctrl in same column) --
     if (instr && ctrl) {
       ln(instr.cx, instr.t - g, ctrl.cx, ctrl.b + g, C_CTRL, "mCtrl", csw);
     }
 
-    // -- Ctrl → Host  (upward, Ctrl is directly below Host in same column) --
+    // -- Ctrl → Host  (control signals back to host, L-shape left then up) --
     if (ctrl && host) {
-      ln(ctrl.cx, ctrl.t - g, host.cx, host.b + g, C_CTRL, "mCtrl", csw);
-    }
-
-    // -- Ctrl → C1  (right then up through the host/ubuf gap) --
-    if (ctrl) {
       pline([
-        [ctrl.r + g, ctrl.cy],
-        [C1.cx, ctrl.cy],
-        [C1.cx, C1.b + g]
+        [ctrl.l - g, ctrl.cy],
+        [host.r + g, ctrl.cy],
+        [host.r + g, host.b + g]
       ], C_CTRL, "mCtrl", csw);
     }
 
-    // -- C1 → C2  (horizontal control bus above main row) --
+    // -- Ctrl → C1  (straight up to C1, same x column) --
+    if (ctrl) {
+      ln(ctrl.cx, ctrl.t - g, C1.cx, C1.b + g, C_CTRL, "mCtrl", csw);
+    }
+
+    // -- C1 → C2  (horizontal rightward, control bus above main row) --
     ln(C1.r + g, C1.cy, C2.l - g, C2.cy, C_CTRL, "mCtrl", csw);
 
-    // -- C2 → C3  (right then down to reach compute pipeline) --
+    // -- C2 → C3  (right then down to compute pipeline) --
     pline([
       [C2.r + g, C2.cy],
       [C3.cx, C2.cy],
       [C3.cx, C3.t - g]
     ], C_CTRL, "mCtrl", csw);
 
-    // -- C3 → back toward Ctrl  (left-and-down, completing the ring) --
+    // -- C3 → Ctrl  (left-and-down, completing the ring) --
     if (ctrl) {
-      var retCtrlY = (acc.b + act.t) / 2;
       pline([
         [C3.l - g, C3.cy],
-        [ctrl.r + 10, retCtrlY],
+        [ctrl.r + 10, C3.cy],
         [ctrl.r + 10, ctrl.cy],
         [ctrl.r + g, ctrl.cy]
       ], C_CTRL, "mCtrl", csw);
