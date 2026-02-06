@@ -63,6 +63,8 @@ body {
   flex-wrap: wrap;
   background: var(--bg-card);
   position: relative;
+  max-width: calc(960px + 4rem);
+  margin: 0 auto;
 }
 .header::after {
   content: '';
@@ -110,6 +112,8 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
+  max-width: calc(960px + 4rem);
+  margin: 0 auto;
 }
 .tab-btn {
   background: none;
@@ -136,7 +140,7 @@ body {
 /* ---- Panel Container ---- */
 .panel-container {
   padding: 1.5rem 2rem 3rem;
-  max-width: 1440px;
+  max-width: 960px;
   margin: 0 auto;
 }
 .panel { display: none; }
@@ -432,6 +436,13 @@ body {
 /* ============================================================
    ARCHITECTURE DIAGRAM
    ============================================================ */
+
+/* The arch diagram card needs a stacking context so its tooltip
+   (#archTip, z-index:300) floats above the pipeline card below. */
+.arch-diagram-card {
+  z-index: 2;
+}
+
 .arch-diagram {
   display: grid;
   position: relative;
@@ -456,6 +467,7 @@ body {
     ".     .  .     .  .     .  .      .  norm ";
   align-items: center;
   justify-items: center;
+  justify-content: center;
   padding: 0.5rem 0;
   min-height: 360px;
 }
@@ -626,6 +638,16 @@ body {
 .arch-leg-buf  { background: #bbdefb; }
 .arch-leg-comp { background: #ffe0b2; }
 .arch-leg-ctrl { background: #ef9a9a; }
+
+/* ============================================================
+   PIPELINE ANIMATION
+   ============================================================ */
+#canvasPipeline {
+  width: 100%;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-light);
+  margin-top: 0.4rem;
+}
 
 /* ============================================================
    PRESENTATION MODE — Tour button

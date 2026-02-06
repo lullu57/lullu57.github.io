@@ -43,7 +43,7 @@
         </p>
       </div>
 
-      <div class="card" style="padding:1.5rem; overflow:visible;">
+      <div class="card arch-diagram-card" style="padding:1.5rem; overflow:visible;">
         <div class="arch-diagram" id="archDiagram">
 
           <!-- Row 1: DDR3 DRAM -->
@@ -116,6 +116,25 @@
           <span class="arch-leg-item"><span class="arch-leg-sw arch-leg-comp"></span> Computation</span>
           <span class="arch-leg-item"><span class="arch-leg-sw arch-leg-ctrl"></span> Control</span>
         </div>
+      </div>
+
+      <!-- Pipeline Animation Card -->
+      <div class="card" id="pipelineCard" style="padding:1.5rem;">
+        <div class="card-title">Fused Pipeline &mdash; No Memory Round-Trips</div>
+        <p class="card-desc">
+          After the systolic array, results flow through Accumulators &rarr; Activation &rarr; Normalize/Pool
+          <strong>in hardware, with zero memory writes between stages</strong>. CPUs must launch separate kernels
+          for each operation, writing results to memory in between. Watch how pipelining lets multiple layers
+          overlap &mdash; completing 4 layers in 7 cycles vs 20.
+        </p>
+        <div class="controls" id="pipelineControls">
+          <button class="primary" id="btnPipePlay">Play</button>
+          <button id="btnPipeStep">Step</button>
+          <button id="btnPipeReset">Reset</button>
+          <label>Speed <input type="range" id="pipeSpeedSlider" min="1" max="10" value="4"></label>
+          <span class="cycle-display">Cycle: <span id="pipeCycleNum">0</span></span>
+        </div>
+        <canvas id="canvasPipeline" width="800" height="300"></canvas>
       </div>
 
       <div class="insight">
@@ -272,6 +291,7 @@
   <script src="systolic.js"></script>
   <script src="roofline.js"></script>
   <script src="performance.js"></script>
+  <script src="pipeline.js"></script>
   <script src="arch.js"></script>
   <script src="present.js"></script>
   <script>

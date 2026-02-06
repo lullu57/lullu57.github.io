@@ -29,6 +29,14 @@
       title: "TPU Architecture Overview",
       notes: "This block diagram shows the TPU's data path. <strong>Hover any block</strong> to see what it does and how it compares to CPU/GPU. Key takeaway: 67% of die area goes to the <strong>Matrix Multiply Unit</strong> (orange) \u2014 65,536 8-bit MACs. Only 2% is control logic. The CPU spends 25% on control.",
     },
+    {
+      tab: "arch",
+      target: "#pipelineCard",
+      position: "top",
+      title: "Fused Pipeline: No Memory Round-Trips",
+      notes: "After the systolic array, data flows through <strong>Accumulators \u2192 Activation \u2192 Normalize/Pool</strong> in hardware \u2014 no memory writes between stages. Press <strong>Play</strong> to see how the TPU processes 4 layers in just <strong>7 cycles</strong> while the CPU needs <strong>20</strong>. Two of the CPU's 5 stages are pure memory overhead. This is the power of a <strong>fused hardware pipeline</strong>.",
+      action: function () { var b = document.getElementById("btnPipeReset"); if (b) b.click(); }
+    },
     // ---- Systolic array ----
     {
       tab: "systolic",
