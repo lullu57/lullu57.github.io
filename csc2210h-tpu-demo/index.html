@@ -224,6 +224,11 @@
             <input type="range" id="memBwSlider" min="34" max="200" value="34" step="1" style="width:150px; accent-color:var(--accent-burn);">
             <span class="slider-val" id="memBwVal">34 GB/s</span>
           </label>
+          <div class="roofline-legend" aria-hidden="true">
+            <span class="roofline-legend-item"><span class="roofline-legend-sym" style="color:#c94a1a">★</span> TPU</span>
+            <span class="roofline-legend-item"><span class="roofline-legend-sym" style="color:#2e7d32">▲</span> GPU</span>
+            <span class="roofline-legend-item"><span class="roofline-legend-sym" style="color:#607d8b">●</span> CPU</span>
+          </div>
         </div>
         <div id="rooflineChart"></div>
         <div class="tooltip" id="rooflineTip"></div>

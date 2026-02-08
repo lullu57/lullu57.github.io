@@ -291,35 +291,6 @@
       });
     });
 
-    // Legend for shapes
-    const legendData = [
-      { label: "TPU (star)", shape: d3.symbolStar, color: "#c94a1a" },
-      { label: "GPU (triangle)", shape: d3.symbolTriangle, color: "#2e7d32" },
-      { label: "CPU (circle)", shape: d3.symbolCircle, color: "#607d8b" },
-    ];
-    const legendG = g.selectAll(".roofline-legend").data([0]);
-    const legEnter = legendG.enter().append("g").attr("class", "roofline-legend");
-    var legX = isMobile ? width - 120 : width - 180;
-    legEnter.merge(legendG).attr("transform", `translate(${legX}, 4)`);
-    const leg = legEnter.merge(legendG);
-    leg.selectAll("*").remove();
-
-    var legSpacing = isMobile ? 14 : 18;
-    var legFont = isMobile ? 8 : 10;
-    legendData.forEach((d, i) => {
-      const ly = i * legSpacing;
-      leg.append("path")
-        .attr("d", d3.symbol().type(d.shape).size(isMobile ? 40 : 60)())
-        .attr("transform", `translate(6,${ly})`)
-        .attr("fill", d.color);
-      leg.append("text")
-        .attr("x", 16).attr("y", ly + 3)
-        .attr("fill", "#8a7f72")
-        .attr("font-size", legFont)
-        .attr("font-family", "'IBM Plex Mono', monospace")
-        .text(d.label);
-    });
-
     // Memory-bound / Compute-bound region labels
     if (document.getElementById("togTPU").checked) {
       const tpuRidge = chips[2].peakTOPS / (2 * chips[2].memBw) * 1e3;
