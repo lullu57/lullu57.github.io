@@ -336,10 +336,10 @@ body {
 .roofline-legend {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.1rem;
   margin-left: auto;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.85rem;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -347,9 +347,9 @@ body {
 .roofline-legend-item {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
 }
-.roofline-legend-sym { font-size: 0.9em; }
+.roofline-legend-sym { font-size: 1.05em; }
 .chip-toggle {
   display: flex;
   align-items: center;
