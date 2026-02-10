@@ -290,16 +290,19 @@ body {
 
 /* ---- Figure-style Systolic Flow ---- */
 .systolic-paper-card {
+  margin-top: 0.15rem;
   background:
     linear-gradient(140deg, rgba(249,245,237,0.96), rgba(244,239,230,0.96)),
     repeating-linear-gradient(0deg, rgba(200,191,173,0.14) 0, rgba(200,191,173,0.14) 1px, transparent 1px, transparent 20px);
 }
-.systolic-paper-card .card-desc { max-width: 75ch; }
+.systolic-paper-card .card-desc { max-width: 68ch; }
 .paper-flow-wrap {
   border: 1px solid var(--border-light);
   border-radius: var(--radius);
   background: var(--bg-card);
-  padding: 0.5rem;
+  padding: 0.35rem;
+  max-width: 980px;
+  margin: 0 auto;
 }
 #systolicFlowSvg {
   width: 100%;
@@ -319,48 +322,66 @@ body {
 .flow-label {
   font-family: var(--font-sans);
   fill: #333027;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 600;
 }
 .flow-label-dark {
   font-family: var(--font-mono);
-  font-size: 16px;
+  font-size: 12px;
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
-.flow-matrix-label { font-size: 20px; font-weight: 500; }
+.flow-small-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  fill: #5c5347;
+}
+.flow-matrix-label { font-size: 16px; font-weight: 500; }
 .flow-guide {
   fill: none;
   stroke: #8a7f72;
   stroke-width: 2;
   marker-end: url(#flowArrowHead);
 }
+.flow-top-loader rect,
 .flow-injector rect {
   fill: #cce9fb;
-  stroke: #73879a;
+  stroke: #2a8a7b;
   stroke-width: 2;
 }
 .flow-link {
   stroke: #7a7468;
-  stroke-width: 3;
+  stroke-width: 2.6;
+}
+.flow-chain {
+  stroke: #2a8a7b;
+  stroke-width: 2;
+  marker-end: url(#flowArrowHeadTeal);
 }
 .flow-arrow,
 .flow-done {
   stroke: #8a7f72;
-  stroke-width: 2.5;
+  stroke-width: 2.2;
   marker-end: url(#flowArrowHead);
 }
-.flow-arrow-v { stroke-width: 2.3; }
+.flow-arrow-v { stroke-width: 2.1; }
 .flow-arrow.is-active {
   stroke: var(--accent-burn);
   marker-end: url(#flowArrowHeadHot);
   filter: drop-shadow(0 0 2px rgba(201,74,26,0.45));
 }
+.flow-top-loader.is-active rect {
+  fill: #e5f7f4;
+  stroke: var(--accent-teal);
+}
 .flow-injector.is-active rect {
   fill: #e5f7f4;
   stroke: var(--accent-teal);
 }
-.flow-injector.is-active .flow-link {
+.flow-injector.is-active .flow-link,
+.flow-top-loader.is-active .flow-link {
   stroke: var(--accent-teal);
 }
 .flow-acc-body {
@@ -375,7 +396,7 @@ body {
 }
 .flow-acc-plus {
   font-family: var(--font-mono);
-  font-size: 22px;
+  font-size: 20px;
   fill: #2a2520;
   font-weight: 700;
 }
@@ -392,13 +413,13 @@ body {
 }
 .flow-done-label {
   font-family: var(--font-mono);
-  font-size: 22px;
+  font-size: 16px;
   letter-spacing: 0.03em;
 }
 .flow-ellipsis {
   font-family: var(--font-mono);
   fill: #5c5347;
-  font-size: 28px;
+  font-size: 22px;
   letter-spacing: 0.14em;
 }
 
@@ -896,10 +917,11 @@ body {
   /* Systolic: stack the two canvases */
   .systolic-layout { grid-template-columns: 1fr; }
   .paper-flow-wrap { padding: 0.3rem; }
-  .flow-label { font-size: 15px; }
-  .flow-matrix-label { font-size: 17px; }
-  .flow-acc-plus { font-size: 18px; }
-  .flow-ellipsis { font-size: 22px; }
+  .flow-label { font-size: 12px; }
+  .flow-matrix-label { font-size: 14px; }
+  .flow-acc-plus { font-size: 16px; }
+  .flow-ellipsis { font-size: 18px; }
+  .flow-small-label { font-size: 8px; }
 
   /* Architecture: single-column flow */
   .arch-diagram {

@@ -63,7 +63,9 @@
   const flowSvg = document.getElementById("systolicFlowSvg");
   const loadPhaseEl = document.getElementById("loadPhase");
   const activeInjectorsEl = document.getElementById("activeInjectors");
+  const activeTopLoadsEl = document.getElementById("activeTopLoads");
   const activeAccumulatorsEl = document.getElementById("activeAccumulators");
+  const flowTopLoaders = flowSvg ? Array.from(flowSvg.querySelectorAll(".flow-top-loader")) : [];
   const flowInjectors = flowSvg ? Array.from(flowSvg.querySelectorAll(".flow-injector")) : [];
   const flowArrows = flowSvg ? Array.from(flowSvg.querySelectorAll(".flow-arrow")) : [];
   const flowAccumulators = flowSvg ? Array.from(flowSvg.querySelectorAll(".flow-acc")) : [];
@@ -162,10 +164,19 @@
     if (!flowSvg) return;
 
     const phase =
-      cycle < N ? "Weight preload" :
-      cycle < totalCycles ? "Activation wave" :
+      cycle < N ? "Top + side preload" :
+      cycle < totalCycles ? "Wavefront multiply" :
       "Drain / done";
     if (loadPhaseEl) loadPhaseEl.textContent = phase;
+
+    let activeTopLoads = 0;
+    for (const loader of flowTopLoaders) {
+      const col = parseInt(loader.dataset.col, 10);
+      const active = cycle >= col && cycle < col + N;
+      loader.classList.toggle("is-active", active);
+      if (active) activeTopLoads++;
+    }
+    if (activeTopLoadsEl) activeTopLoadsEl.textContent = activeTopLoads;
 
     let activeInjectors = 0;
     for (const injector of flowInjectors) {
