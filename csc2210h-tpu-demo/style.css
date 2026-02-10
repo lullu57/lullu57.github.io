@@ -338,7 +338,14 @@ body {
   text-transform: uppercase;
   fill: #5c5347;
 }
-.flow-matrix-label { font-size: 16px; font-weight: 500; }
+.flow-matrix-label {
+  font-size: 16px;
+  font-weight: 500;
+  paint-order: stroke;
+  stroke: rgba(241, 231, 191, 0.96);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
 .flow-guide {
   fill: none;
   stroke: #8a7f72;
