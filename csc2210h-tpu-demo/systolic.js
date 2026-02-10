@@ -59,6 +59,15 @@
   let cpuResult;
   let cpuDone = false;
 
+  // Figure-style flow map elements (optional: guard for missing DOM)
+  const flowSvg = document.getElementById("systolicFlowSvg");
+  const loadPhaseEl = document.getElementById("loadPhase");
+  const activeInjectorsEl = document.getElementById("activeInjectors");
+  const activeAccumulatorsEl = document.getElementById("activeAccumulators");
+  const flowInjectors = flowSvg ? Array.from(flowSvg.querySelectorAll(".flow-injector")) : [];
+  const flowArrows = flowSvg ? Array.from(flowSvg.querySelectorAll(".flow-arrow")) : [];
+  const flowAccumulators = flowSvg ? Array.from(flowSvg.querySelectorAll(".flow-acc")) : [];
+
   // Cell (i,j) is active from cycle i+j to i+j+N-1.
   // The last cell (N-1,N-1) finishes at cycle 2(N-1)+(N-1) = 3(N-1).
   // Total cycles needed = 3(N-1) + 1 = 3N - 2.
@@ -146,6 +155,42 @@
     document.getElementById("tpuMacs").textContent = tpuMacs;
     document.getElementById("cpuReads").textContent = cpuReads;
     document.getElementById("cpuMacs").textContent = cpuMacs;
+    updatePaperFlow();
+  }
+
+  function updatePaperFlow() {
+    if (!flowSvg) return;
+
+    const phase =
+      cycle < N ? "Weight preload" :
+      cycle < totalCycles ? "Activation wave" :
+      "Drain / done";
+    if (loadPhaseEl) loadPhaseEl.textContent = phase;
+
+    let activeInjectors = 0;
+    for (const injector of flowInjectors) {
+      const row = parseInt(injector.dataset.row, 10);
+      const active = cycle >= row && cycle < row + N;
+      injector.classList.toggle("is-active", active);
+      if (active) activeInjectors++;
+    }
+    if (activeInjectorsEl) activeInjectorsEl.textContent = activeInjectors;
+
+    for (const arrow of flowArrows) {
+      const start = parseInt(arrow.dataset.start, 10) || 0;
+      const active = cycle >= start && cycle < start + N - 1;
+      arrow.classList.toggle("is-active", active);
+    }
+
+    let activeAccumulators = 0;
+    for (const acc of flowAccumulators) {
+      const col = parseInt(acc.dataset.col, 10);
+      const writeStart = N + col;
+      const active = cycle >= writeStart && cycle < totalCycles + 2;
+      acc.classList.toggle("is-active", active);
+      if (active) activeAccumulators++;
+    }
+    if (activeAccumulatorsEl) activeAccumulatorsEl.textContent = activeAccumulators;
   }
 
   // ============================================================

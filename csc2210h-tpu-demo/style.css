@@ -288,6 +288,120 @@ body {
   border: 1px solid var(--border-light);
 }
 
+/* ---- Figure-style Systolic Flow ---- */
+.systolic-paper-card {
+  background:
+    linear-gradient(140deg, rgba(249,245,237,0.96), rgba(244,239,230,0.96)),
+    repeating-linear-gradient(0deg, rgba(200,191,173,0.14) 0, rgba(200,191,173,0.14) 1px, transparent 1px, transparent 20px);
+}
+.systolic-paper-card .card-desc { max-width: 75ch; }
+.paper-flow-wrap {
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  padding: 0.5rem;
+}
+#systolicFlowSvg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.flow-control {
+  fill: #ef6a63;
+  stroke: #9f302b;
+  stroke-width: 2;
+}
+.flow-matrix {
+  fill: #f1e7bf;
+  stroke: #736d5e;
+  stroke-width: 3;
+}
+.flow-label {
+  font-family: var(--font-sans);
+  fill: #333027;
+  font-size: 18px;
+  font-weight: 600;
+}
+.flow-label-dark {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.flow-matrix-label { font-size: 20px; font-weight: 500; }
+.flow-guide {
+  fill: none;
+  stroke: #8a7f72;
+  stroke-width: 2;
+  marker-end: url(#flowArrowHead);
+}
+.flow-injector rect {
+  fill: #cce9fb;
+  stroke: #73879a;
+  stroke-width: 2;
+}
+.flow-link {
+  stroke: #7a7468;
+  stroke-width: 3;
+}
+.flow-arrow,
+.flow-done {
+  stroke: #8a7f72;
+  stroke-width: 2.5;
+  marker-end: url(#flowArrowHead);
+}
+.flow-arrow-v { stroke-width: 2.3; }
+.flow-arrow.is-active {
+  stroke: var(--accent-burn);
+  marker-end: url(#flowArrowHeadHot);
+  filter: drop-shadow(0 0 2px rgba(201,74,26,0.45));
+}
+.flow-injector.is-active rect {
+  fill: #e5f7f4;
+  stroke: var(--accent-teal);
+}
+.flow-injector.is-active .flow-link {
+  stroke: var(--accent-teal);
+}
+.flow-acc-body {
+  fill: #d0ebfb;
+  stroke: #73879a;
+  stroke-width: 2;
+}
+.flow-acc-sum {
+  fill: #fffdf8;
+  stroke: #666158;
+  stroke-width: 2;
+}
+.flow-acc-plus {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  fill: #2a2520;
+  font-weight: 700;
+}
+.flow-acc.is-active .flow-acc-body {
+  fill: #e6f5f2;
+  stroke: var(--accent-teal);
+}
+.flow-acc.is-active .flow-acc-sum {
+  stroke: var(--accent-burn);
+  fill: #fff1eb;
+}
+.flow-acc.is-active .flow-acc-plus {
+  fill: var(--accent-burn);
+}
+.flow-done-label {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  letter-spacing: 0.03em;
+}
+.flow-ellipsis {
+  font-family: var(--font-mono);
+  fill: #5c5347;
+  font-size: 28px;
+  letter-spacing: 0.14em;
+}
+
 /* ---- Stat badges ---- */
 .stat-row {
   display: flex;
@@ -781,6 +895,11 @@ body {
 
   /* Systolic: stack the two canvases */
   .systolic-layout { grid-template-columns: 1fr; }
+  .paper-flow-wrap { padding: 0.3rem; }
+  .flow-label { font-size: 15px; }
+  .flow-matrix-label { font-size: 17px; }
+  .flow-acc-plus { font-size: 18px; }
+  .flow-ellipsis { font-size: 22px; }
 
   /* Architecture: single-column flow */
   .arch-diagram {

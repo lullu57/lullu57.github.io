@@ -166,6 +166,108 @@
         <span class="cycle-display">Cycle: <span id="cycleNum">0</span></span>
       </div>
 
+      <div class="card systolic-paper-card">
+        <div class="card-title">Figure 4 Inspired Data Loading Flow</div>
+        <p class="card-desc">
+          Paper-style view of how weights are staged and activations stream through the matrix.
+          The highlighted paths advance with the same cycle counter as the simulator below.
+        </p>
+        <div class="paper-flow-wrap">
+          <svg id="systolicFlowSvg" viewBox="0 0 840 460" role="img" aria-label="Systolic data loading flow">
+            <defs>
+              <marker id="flowArrowHead" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 Z" fill="#8a7f72"></path>
+              </marker>
+              <marker id="flowArrowHeadHot" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                <path d="M0,0 L8,4 L0,8 Z" fill="#c94a1a"></path>
+              </marker>
+            </defs>
+
+            <rect class="flow-control" x="30" y="24" width="128" height="54" rx="4"></rect>
+            <text class="flow-label flow-label-dark" x="94" y="58" text-anchor="middle">Control</text>
+            <path class="flow-guide" d="M160 46 L248 46 L268 70"></path>
+            <path class="flow-guide" d="M160 58 L212 58 L234 94"></path>
+
+            <rect class="flow-matrix" x="268" y="52" width="490" height="300" rx="4"></rect>
+            <text class="flow-label flow-matrix-label" x="586" y="106">Data</text>
+            <text class="flow-label flow-matrix-label" x="498" y="296">Partial sums</text>
+
+            <g class="flow-injector" data-row="0">
+              <rect x="186" y="96" width="56" height="30" rx="3"></rect>
+              <line class="flow-link" x1="242" y1="111" x2="268" y2="111"></line>
+            </g>
+            <g class="flow-injector" data-row="1">
+              <rect x="186" y="138" width="56" height="30" rx="3"></rect>
+              <line class="flow-link" x1="242" y1="153" x2="268" y2="153"></line>
+            </g>
+            <g class="flow-injector" data-row="2">
+              <rect x="186" y="180" width="56" height="30" rx="3"></rect>
+              <line class="flow-link" x1="242" y1="195" x2="268" y2="195"></line>
+            </g>
+            <text class="flow-ellipsis" x="214" y="236">...</text>
+            <g class="flow-injector" data-row="4">
+              <rect x="186" y="258" width="56" height="30" rx="3"></rect>
+              <line class="flow-link" x1="242" y1="273" x2="268" y2="273"></line>
+            </g>
+            <g class="flow-injector" data-row="5">
+              <rect x="186" y="300" width="56" height="30" rx="3"></rect>
+              <line class="flow-link" x1="242" y1="315" x2="268" y2="315"></line>
+            </g>
+
+            <line class="flow-arrow" data-start="0" x1="304" y1="108" x2="350" y2="108"></line>
+            <line class="flow-arrow" data-start="1" x1="384" y1="108" x2="430" y2="108"></line>
+            <line class="flow-arrow" data-start="2" x1="464" y1="108" x2="510" y2="108"></line>
+            <line class="flow-arrow" data-start="3" x1="544" y1="108" x2="590" y2="108"></line>
+
+            <line class="flow-arrow" data-start="2" x1="342" y1="164" x2="388" y2="164"></line>
+            <line class="flow-arrow" data-start="3" x1="420" y1="164" x2="466" y2="164"></line>
+            <line class="flow-arrow" data-start="4" x1="498" y1="164" x2="544" y2="164"></line>
+
+            <line class="flow-arrow" data-start="4" x1="382" y1="224" x2="428" y2="224"></line>
+            <line class="flow-arrow" data-start="5" x1="460" y1="224" x2="506" y2="224"></line>
+
+            <line class="flow-arrow flow-arrow-v" data-start="5" x1="430" y1="180" x2="430" y2="224"></line>
+            <line class="flow-arrow flow-arrow-v" data-start="6" x1="430" y1="236" x2="430" y2="280"></line>
+            <line class="flow-arrow flow-arrow-v" data-start="6" x1="546" y1="144" x2="546" y2="188"></line>
+            <line class="flow-arrow flow-arrow-v" data-start="7" x1="546" y1="200" x2="546" y2="244"></line>
+            <line class="flow-arrow flow-arrow-v" data-start="8" x1="546" y1="256" x2="546" y2="300"></line>
+            <line class="flow-arrow flow-arrow-v" data-start="4" x1="676" y1="126" x2="676" y2="170"></line>
+            <line class="flow-arrow flow-arrow-v" data-start="5" x1="676" y1="182" x2="676" y2="226"></line>
+            <line class="flow-arrow flow-arrow-v" data-start="6" x1="676" y1="238" x2="676" y2="282"></line>
+            <line class="flow-arrow flow-arrow-v" data-start="7" x1="676" y1="294" x2="676" y2="338"></line>
+
+            <g class="flow-acc" data-col="0">
+              <rect class="flow-acc-body" x="314" y="370" width="66" height="56" rx="3"></rect>
+              <circle class="flow-acc-sum" cx="347" cy="362" r="16"></circle>
+              <text class="flow-acc-plus" x="347" y="367" text-anchor="middle">+</text>
+            </g>
+            <g class="flow-acc" data-col="1">
+              <rect class="flow-acc-body" x="424" y="370" width="66" height="56" rx="3"></rect>
+              <circle class="flow-acc-sum" cx="457" cy="362" r="16"></circle>
+              <text class="flow-acc-plus" x="457" y="367" text-anchor="middle">+</text>
+            </g>
+            <g class="flow-acc" data-col="2">
+              <rect class="flow-acc-body" x="534" y="370" width="66" height="56" rx="3"></rect>
+              <circle class="flow-acc-sum" cx="567" cy="362" r="16"></circle>
+              <text class="flow-acc-plus" x="567" y="367" text-anchor="middle">+</text>
+            </g>
+            <text class="flow-ellipsis" x="618" y="404">...</text>
+            <g class="flow-acc" data-col="3">
+              <rect class="flow-acc-body" x="642" y="370" width="66" height="56" rx="3"></rect>
+              <circle class="flow-acc-sum" cx="675" cy="362" r="16"></circle>
+              <text class="flow-acc-plus" x="675" y="367" text-anchor="middle">+</text>
+            </g>
+            <line class="flow-done" x1="708" y1="398" x2="758" y2="398"></line>
+            <text class="flow-label flow-done-label" x="772" y="406">Done</text>
+          </svg>
+        </div>
+        <div class="stat-row">
+          <span class="stat-badge">Load phase: <span class="val" id="loadPhase">Weight preload</span></span>
+          <span class="stat-badge">Active row injectors: <span class="val" id="activeInjectors">0</span></span>
+          <span class="stat-badge">Accumulator writes: <span class="val" id="activeAccumulators">0</span></span>
+        </div>
+      </div>
+
       <div class="systolic-layout">
         <div class="card">
           <div class="card-title">TPU &mdash; Systolic Data Flow</div>
