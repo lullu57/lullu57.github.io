@@ -123,17 +123,30 @@
       <div class="card" id="pipelineCard" style="padding:1.5rem;">
         <div class="card-title">Fused Pipeline &mdash; No Memory Round-Trips</div>
         <p class="card-desc">
-          After the systolic array, results flow through Accumulators &rarr; Activation &rarr; Normalize/Pool
-          <strong>in hardware, with zero memory writes between stages</strong>. CPUs must launch separate kernels
-          for each operation, writing results to memory in between. Watch how pipelining lets multiple layers
-          overlap &mdash; completing 4 layers in 7 cycles vs 20.
+          CPU execution is highly optimized in practice. This visualization contrasts a <strong>teaching baseline CPU</strong>
+          with an <strong>optimized pipelined CPU</strong> to isolate why TPU dataflow still scales better for this workload:
+          more spatial parallelism, deterministic movement, and fewer costly off-core accesses.
         </p>
         <div class="controls" id="pipelineControls">
           <button class="primary" id="btnPipePlay">Play</button>
           <button id="btnPipeStep">Step</button>
           <button id="btnPipeReset">Reset</button>
           <label>Speed <input type="range" id="pipeSpeedSlider" min="1" max="10" value="4"></label>
+          <div class="mode-toggle" id="cpuModeToggle" role="group" aria-label="CPU mode">
+            <button class="mode-btn" id="btnCpuBaseline" type="button">CPU Baseline</button>
+            <button class="mode-btn active" id="btnCpuOptimized" type="button">CPU Optimized</button>
+          </div>
           <span class="cycle-display">Cycle: <span id="pipeCycleNum">0</span></span>
+        </div>
+        <div class="assumption-chip" id="pipelineAssumptions">Assumptions: 3-way overlap, SIMD lanes, cache hierarchy.</div>
+        <div class="pipeline-note" id="pipelineMemoryNote">
+          Note: L1/L2 hits add <strong>0-cycle stall</strong>, so a layer can move past Cache/Memory quickly.
+          Writeback is a separate output-store stage with fixed cost.
+        </div>
+        <div class="pipeline-mem-legend" id="pipelineMemLegend" aria-hidden="true">
+          <span class="pipeline-mem-item"><span class="mem-dot l1"></span>L1/L2 hit</span>
+          <span class="pipeline-mem-item"><span class="mem-dot llc"></span>LLC hit</span>
+          <span class="pipeline-mem-item"><span class="mem-dot dram"></span>DRAM miss</span>
         </div>
         <canvas id="canvasPipeline" width="800" height="300"></canvas>
       </div>
